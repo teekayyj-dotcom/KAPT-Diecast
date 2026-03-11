@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Khai báo biến CSS chứa màu đỏ thương hiệu */
+    --color-red-brand: #C5241B; 
+  }
+}
