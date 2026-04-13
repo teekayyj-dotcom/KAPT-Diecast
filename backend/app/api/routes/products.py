@@ -1,0 +1,94 @@
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
+from sqlalchemy.orm import Session
+
+from ...db.session import get_db
+from ...repositories.product_repository import ProductRepository
+from ...schemas.product import ProductCreate, ProductResponse, ProductUpdate
+from ...services.product_service import ProductService
+from ...utils.storage import build_product_storage_paths, save_upload_file
+
+
+router = APIRouter()
+
+
+def get_product_service(db: Session = Depends(get_db)) -> ProductService:
+    return ProductService(ProductRepository(db))
+
+
+@router.get("", response_model=list[ProductResponse])
+def list_products(
+    q: str | None = Query(default=None),
+    service: ProductService = Depends(get_product_service),
+):
+    return service.list_products(search=q)
+
+
+@router.post("", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
+def create_product(
+    payload: ProductCreate,
+    service: ProductService = Depends(get_product_service),
+):
+    return service.create_product(payload)
+
+
+@router.get("/{product_id}", response_model=ProductResponse)
+def get_product(
+    product_id: int,
+    service: ProductService = Depends(get_product_service),
+):
+    product = service.get_product(product_id)
+    if not product:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+    return product
+
+
+@router.patch("/{product_id}", response_model=ProductResponse)
+def update_product(
+    product_id: int,
+    payload: ProductUpdate,
+    service: ProductService = Depends(get_product_service),
+):
+    product = service.update_product(product_id, payload)
+    if not product:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+    return product
+
+
+@router.post("/{product_id}/images", response_model=ProductResponse)
+def upload_product_images(
+    product_id: int,
+    request: Request,
+    main_image: UploadFile | None = File(default=None),
+    gallery_images: list[UploadFile] | None = File(default=None),
+    service: ProductService = Depends(get_product_service),
+):
+    product = service.get_product(product_id)
+    if not product:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+
+    main_dir, gallery_dir = build_product_storage_paths(product_id)
+    main_image_url = product.main_image_url
+    gallery_image_urls = list(product.gallery_image_urls or [])
+
+    if main_image:
+        filename = save_upload_file(main_image, main_dir, "main")
+        main_image_url = str(request.base_url).rstrip("/") + f"/storage/products/{product_id}/main/{filename}"
+
+    if gallery_images:
+        gallery_image_urls = []
+        for index, image in enumerate(gallery_images, start=1):
+            filename = save_upload_file(image, gallery_dir, f"gallery-{index}")
+            gallery_image_urls.append(
+                str(request.base_url).rstrip("/") + f"/storage/products/{product_id}/gallery/{filename}"
+            )
+
+    updated_product = service.update_product(
+        product_id,
+        ProductUpdate(
+            main_image_url=main_image_url,
+            gallery_image_urls=gallery_image_urls or None,
+        ),
+    )
+    return updated_product

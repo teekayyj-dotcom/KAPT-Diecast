@@ -1,46 +1,33 @@
-from fastapi import Depends, FastAPI
-from sqlalchemy.orm import Session
+from pathlib import Path
 
-from .db_session import Base, engine, get_db
-from .firebase_auth import verify_firebase_token
-from .product_models import Product
-from .product_schemas import ProductCreate, ProductResponse
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+
+from .api.router import api_router
+from .core.config import settings
+from .db.base import Base
+from .db.bootstrap import bootstrap_default_data
+from .db.session import engine
+from .models import Product, User
+from .utils.storage import ensure_storage_directories
 
 
-app = FastAPI(title="Kapt Diecast FastAPI")
-
-# Tao bang tu dong cho demo/local development.
+app = FastAPI(title=settings.app_name, version=settings.app_version)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:4173",
+        "http://127.0.0.1:4173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 Base.metadata.create_all(bind=engine)
-
-
-@app.get("/")
-def read_root():
-    return {"message": "FastAPI + MySQL is running"}
-
-
-@app.get("/health")
-def health_check():
-    return {"status": "ok"}
-
-
-@app.get("/me")
-def get_current_user(user=Depends(verify_firebase_token)):
-    return {
-        "uid": user["uid"],
-        "email": user["email"],
-        "name": user["name"],
-    }
-
-
-@app.get("/products", response_model=list[ProductResponse])
-def list_products(db: Session = Depends(get_db)):
-    return db.query(Product).all()
-
-
-@app.post("/products", response_model=ProductResponse)
-def create_product(payload: ProductCreate, db: Session = Depends(get_db)):
-    product = Product(**payload.model_dump())
-    db.add(product)
-    db.commit()
-    db.refresh(product)
-    return product
+ensure_storage_directories()
+bootstrap_default_data()
+app.mount("/storage", StaticFiles(directory=Path(settings.storage_dir)), name="storage")
+app.include_router(api_router)

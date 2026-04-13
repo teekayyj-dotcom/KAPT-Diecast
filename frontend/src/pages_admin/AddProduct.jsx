@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { 
   UploadCloud, 
   Bold, 
@@ -18,10 +18,134 @@ import { Link } from "react-router-dom";
 
 export function AddProduct() {
   const [inStock, setInStock] = useState(true);
+  const [carName, setCarName] = useState("");
+  const [price, setPrice] = useState("");
+  const [sku, setSku] = useState("");
+  const [originalBrand, setOriginalBrand] = useState("");
+  const [diecastBrand, setDiecastBrand] = useState("");
+  const [scale, setScale] = useState("");
+  const [color, setColor] = useState("");
+  const [description, setDescription] = useState("");
+  const [mainImage, setMainImage] = useState(null);
+  const [thumbnails, setThumbnails] = useState([null, null, null]);
+  const [mainImageFile, setMainImageFile] = useState(null);
+  const [thumbnailFiles, setThumbnailFiles] = useState([null, null, null]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const mainInputRef = useRef(null);
+
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8001";
+
+  const handleMainImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setMainImageFile(file);
+      setMainImage(URL.createObjectURL(file));
+    }
+  };
+
+  const handleThumbnailChange = (index, e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const newThumbnails = [...thumbnails];
+      const newThumbnailFiles = [...thumbnailFiles];
+      newThumbnails[index] = URL.createObjectURL(file);
+      newThumbnailFiles[index] = file;
+      setThumbnails(newThumbnails);
+      setThumbnailFiles(newThumbnailFiles);
+    }
+  };
+
+  const handleSaveProduct = async (event) => {
+    event.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (!carName.trim() || !price) {
+      setError("Car name and price are required.");
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/products`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: carName.trim(),
+          sku: sku.trim() || null,
+          original_brand: originalBrand || null,
+          diecast_brand: diecastBrand || null,
+          scale: scale || null,
+          color: color || null,
+          description: description.trim() || null,
+          price: Number(price),
+          in_stock: inStock,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.detail || "Failed to save product.");
+      }
+
+      const savedProduct = await response.json();
+
+      if (mainImageFile || thumbnailFiles.some(Boolean)) {
+        const imageFormData = new FormData();
+
+        if (mainImageFile) {
+          imageFormData.append("main_image", mainImageFile);
+        }
+
+        thumbnailFiles.filter(Boolean).forEach((file) => {
+          imageFormData.append("gallery_images", file);
+        });
+
+        const imageResponse = await fetch(`${apiBaseUrl}/products/${savedProduct.id}/images`, {
+          method: "POST",
+          body: imageFormData,
+        });
+
+        if (!imageResponse.ok) {
+          const imageData = await imageResponse.json().catch(() => ({}));
+          throw new Error(imageData.detail || "Product saved but image upload failed.");
+        }
+      }
+
+      setSuccess(`Product saved successfully with ID #${savedProduct.id}.`);
+      setCarName("");
+      setPrice("");
+      setSku("");
+      setOriginalBrand("");
+      setDiecastBrand("");
+      setScale("");
+      setColor("");
+      setDescription("");
+      setInStock(true);
+      setMainImage(null);
+      setMainImageFile(null);
+      setThumbnails([null, null, null]);
+      setThumbnailFiles([null, null, null]);
+      if (mainInputRef.current) {
+        mainInputRef.current.value = "";
+      }
+    } catch (err) {
+      setError(err.message || "Failed to save product.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       {/* Header */}
+      <form onSubmit={handleSaveProduct} className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link to="/admin/products" className="p-2 border border-gray-200 rounded-lg text-gray-400 hover:text-black hover:bg-white transition-colors">
@@ -33,14 +157,24 @@ export function AddProduct() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button className="bg-white border border-gray-200 text-black px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm">
+          <button type="button" className="bg-white border border-gray-200 text-black px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm">
             Save as Draft
           </button>
-          <button className="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm shadow-red-600/20">
-            Save Product
+          <button type="submit" disabled={isSaving} className="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm shadow-red-600/20 disabled:cursor-not-allowed disabled:opacity-60">
+            {isSaving ? "Saving..." : "Save Product"}
           </button>
         </div>
       </div>
+
+      {(error || success) && (
+        <div className={`rounded-lg border px-4 py-3 text-sm ${
+          error
+            ? "border-red-200 bg-red-50 text-red-700"
+            : "border-emerald-200 bg-emerald-50 text-emerald-700"
+        }`}>
+          {error || success}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Details Form */}
@@ -57,6 +191,8 @@ export function AddProduct() {
                 <input
                   type="text"
                   placeholder="e.g. Porsche 911 GT3 RS (992)"
+                  value={carName}
+                  onChange={(e) => setCarName(e.target.value)}
                   className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white transition-all text-black placeholder:text-gray-400"
                 />
               </div>
@@ -76,6 +212,8 @@ export function AddProduct() {
                       min="0"
                       step="0.01"
                       placeholder="0.00"
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
                       className="w-full pl-7 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white transition-all text-black placeholder:text-gray-400"
                     />
                   </div>
@@ -87,6 +225,8 @@ export function AddProduct() {
                   <input
                     type="text"
                     placeholder="e.g. KAPT-992-GT3"
+                    value={sku}
+                    onChange={(e) => setSku(e.target.value)}
                     className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white transition-all text-black placeholder:text-gray-400"
                   />
                 </div>
@@ -98,7 +238,7 @@ export function AddProduct() {
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     Original Car Brand
                   </label>
-                  <select defaultValue="" className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white transition-all text-black appearance-none">
+                  <select value={originalBrand} onChange={(e) => setOriginalBrand(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white transition-all text-black appearance-none">
                     <option value="" disabled>Select Brand</option>
                     <option value="porsche">Porsche</option>
                     <option value="ferrari">Ferrari</option>
@@ -111,7 +251,7 @@ export function AddProduct() {
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     Diecast Brand
                   </label>
-                  <select defaultValue="" className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white transition-all text-black appearance-none">
+                  <select value={diecastBrand} onChange={(e) => setDiecastBrand(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white transition-all text-black appearance-none">
                     <option value="" disabled>Select Manufacturer</option>
                     <option value="autoart">AUTOart</option>
                     <option value="cmc">CMC</option>
@@ -128,7 +268,7 @@ export function AddProduct() {
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     Scale
                   </label>
-                  <select defaultValue="" className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white transition-all text-black appearance-none">
+                  <select value={scale} onChange={(e) => setScale(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white transition-all text-black appearance-none">
                     <option value="" disabled>Select Scale</option>
                     <option value="1:12">1:12</option>
                     <option value="1:18">1:18</option>
@@ -141,7 +281,7 @@ export function AddProduct() {
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     Color
                   </label>
-                  <select defaultValue="" className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white transition-all text-black appearance-none">
+                  <select value={color} onChange={(e) => setColor(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white transition-all text-black appearance-none">
                     <option value="" disabled>Select Color</option>
                     <option value="red">Racing Red</option>
                     <option value="black">Jet Black</option>
@@ -178,6 +318,8 @@ export function AddProduct() {
                   <textarea
                     rows={8}
                     placeholder="Describe the material, detailing, moving parts, etc..."
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                     className="w-full p-4 text-sm text-black focus:outline-none resize-y min-h-[150px] placeholder:text-gray-400"
                   ></textarea>
                 </div>
@@ -224,10 +366,27 @@ export function AddProduct() {
 
             <div className="space-y-3">
               {/* Main Image Dropzone */}
-              <div className="group relative w-full aspect-[4/3] bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center hover:bg-gray-100 hover:border-red-400 transition-all cursor-pointer overflow-hidden">
-                <UploadCloud className="text-gray-400 group-hover:text-red-500 mb-2 transition-colors" size={32} />
-                <span className="text-sm font-medium text-gray-600 group-hover:text-red-600">Click to upload main image</span>
-                <span className="text-xs text-gray-400 mt-1">SVG, PNG, JPG or GIF (max. 800x400px)</span>
+              <div 
+                className="group relative w-full aspect-[4/3] bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center hover:bg-gray-100 hover:border-red-400 transition-all cursor-pointer overflow-hidden"
+                onClick={() => mainInputRef.current?.click()}
+              >
+                <input 
+                  type="file" 
+                  ref={mainInputRef} 
+                  className="hidden" 
+                  accept="image/*" 
+                  onChange={handleMainImageChange} 
+                />
+                
+                {mainImage ? (
+                  <img src={mainImage} className="w-full h-full object-cover" alt="Main Preview" />
+                ) : (
+                  <>
+                    <UploadCloud className="text-gray-400 group-hover:text-red-500 mb-2 transition-colors" size={32} />
+                    <span className="text-sm font-medium text-gray-600 group-hover:text-red-600">Click to upload main image</span>
+                    <span className="text-xs text-gray-400 mt-1">SVG, PNG, JPG or GIF (max. 800x400px)</span>
+                  </>
+                )}
                 
                 {/* Overlay for "Main" badge */}
                 <div className="absolute top-2 left-2 bg-black/60 backdrop-blur text-white text-[10px] font-bold px-2 py-1 rounded">
@@ -237,9 +396,21 @@ export function AddProduct() {
 
               {/* Thumbnails Row */}
               <div className="grid grid-cols-3 gap-3">
-                {[1, 2, 3].map((idx) => (
-                  <div key={idx} className="group aspect-square bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center hover:bg-gray-100 hover:border-red-400 transition-all cursor-pointer">
-                    <Plus className="text-gray-300 group-hover:text-red-500 transition-colors" size={24} />
+                {thumbnails.map((thumb, idx) => (
+                  <div key={idx} className="relative group aspect-square bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center hover:bg-gray-100 hover:border-red-400 transition-all cursor-pointer overflow-hidden">
+                    <label className="absolute inset-0 flex items-center justify-center cursor-pointer w-full h-full">
+                      <input 
+                        type="file" 
+                        className="hidden" 
+                        accept="image/*" 
+                        onChange={(e) => handleThumbnailChange(idx, e)}
+                      />
+                      {thumb ? (
+                        <img src={thumb} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                      ) : (
+                        <Plus className="text-gray-300 group-hover:text-red-500 transition-colors" size={24} />
+                      )}
+                    </label>
                   </div>
                 ))}
               </div>
@@ -247,6 +418,7 @@ export function AddProduct() {
           </div>
         </div>
       </div>
+      </form>
     </div>
   );
 }
