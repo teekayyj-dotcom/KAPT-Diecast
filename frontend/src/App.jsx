@@ -9,6 +9,19 @@ import SignupPage from './pages_auth/Signup'
 import BlogPage from './pages/Blog'
 import ServicePage from './pages/Service'
 import AboutPage from './pages/AboutPage'
+import ProtectedRoute from './components/ProtectedRoute'
+import { Layout as AdminLayout } from './pages_admin/Layout'
+import { Dashboard as AdminDashboard } from './pages_admin/Dashboard'
+import { Products as AdminProducts } from './pages_admin/Products'
+import { AddProduct } from './pages_admin/AddProduct'
+import { Posters as AdminPosters } from './pages_admin/Posters'
+import { AddPoster } from './pages_admin/AddPoster'
+import { Blogs as AdminBlogs } from './pages_admin/Blogs'
+import { AddBlog } from './pages_admin/AddBlog'
+import { Users as AdminUsers } from './pages_admin/Users'
+import { AddUser } from './pages_admin/AddUser'
+import { Settings as AdminSettings } from './pages_admin/Settings'
+import { Placeholder } from './pages_admin/Placeholder'
 
 export default function App() {
   return (
@@ -17,12 +30,42 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/products" element={<ProductPage />} />
-        <Route path="/cart" element={<CartPage />} />
+        <Route
+          path="/cart"
+          element={
+            <ProtectedRoute>
+              <CartPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/services" element={<ServicePage />} />
         <Route path="/about" element={<AboutPage />} />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute requireAdmin>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<AdminDashboard />} />
+          <Route path="analytics" element={<Placeholder title="Analytics" />} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="users/add" element={<AddUser />} />
+          <Route path="orders" element={<Placeholder title="Orders" />} />
+          <Route path="products" element={<AdminProducts />} />
+          <Route path="products/add" element={<AddProduct />} />
+          <Route path="posters" element={<AdminPosters />} />
+          <Route path="posters/add" element={<AddPoster />} />
+          <Route path="blogs" element={<AdminBlogs />} />
+          <Route path="blogs/add" element={<AddBlog />} />
+          <Route path="messages" element={<Placeholder title="Messages" />} />
+          <Route path="integrations" element={<Placeholder title="Integrations" />} />
+          <Route path="settings" element={<AdminSettings />} />
+        </Route>
       </Routes>
     </>
   )

@@ -1,12 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Globe, User, ShoppingCart, Menu, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { logout } from '../../services/authService';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { currentUser } = useAuth();
 
   const toggleMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+
+    try {
+      await logout();
+      setIsMobileMenuOpen(false);
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -62,9 +77,25 @@ const Header = () => {
         <button className="hover:text-red-brand transition-colors duration-200">
           <Globe className="w-5 h-5" strokeWidth={1.5} />
         </button>
-        <Link to="/login" className="hover:text-red-brand transition-colors duration-200">
-          <User className="w-5 h-5" strokeWidth={1.5} />
-        </Link>
+        {currentUser ? (
+          <div className="flex items-center gap-3">
+            <span className="max-w-[140px] truncate text-xs text-gray-300">
+              {currentUser.displayName || currentUser.email}
+            </span>
+            <button
+              type="button"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="rounded-full border border-gray-700 px-3 py-1 text-xs font-medium hover:border-red-brand hover:text-red-brand disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isLoggingOut ? '...' : 'Logout'}
+            </button>
+          </div>
+        ) : (
+          <Link to="/login" className="hover:text-red-brand transition-colors duration-200">
+            <User className="w-5 h-5" strokeWidth={1.5} />
+          </Link>
+        )}
         <Link to="/cart" className="hover:text-red-brand transition-colors duration-200 relative">
           <ShoppingCart className="w-5 h-5" strokeWidth={1.5} />
           <span className="absolute -top-2 -right-2 bg-red-brand text-white text-[10px] font-medium w-4 h-4 flex items-center justify-center rounded-full">3</span>
@@ -109,10 +140,22 @@ const Header = () => {
               <span className="absolute -top-2 -right-2 bg-red-brand text-white text-[10px] font-medium w-4 h-4 flex items-center justify-center rounded-full">3</span>
               <span className="text-xs text-gray-400">Cart</span>
             </Link>
-            <Link to="/login" onClick={toggleMenu} className="flex flex-col items-center gap-2 hover:text-red-brand transition-colors duration-200">
-              <User className="w-6 h-6" strokeWidth={1.5} />
-              <span className="text-xs text-gray-400">Account</span>
-            </Link>
+            {currentUser ? (
+              <button
+                type="button"
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="flex flex-col items-center gap-2 hover:text-red-brand transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <User className="w-6 h-6" strokeWidth={1.5} />
+                <span className="text-xs text-gray-400">{isLoggingOut ? 'Logging out' : 'Logout'}</span>
+              </button>
+            ) : (
+              <Link to="/login" onClick={toggleMenu} className="flex flex-col items-center gap-2 hover:text-red-brand transition-colors duration-200">
+                <User className="w-6 h-6" strokeWidth={1.5} />
+                <span className="text-xs text-gray-400">Account</span>
+              </Link>
+            )}
             <button className="flex flex-col items-center gap-2 hover:text-red-brand transition-colors duration-200">
               <Globe className="w-6 h-6" strokeWidth={1.5} />
               <span className="text-xs text-gray-400">EN</span>

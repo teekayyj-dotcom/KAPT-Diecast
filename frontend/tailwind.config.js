@@ -6,10 +6,28 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['var(--font-body)'],
+        display: ['var(--font-display)'],
+      },
       colors: {
-        // Tailwind sẽ lấy màu từ biến --color-red-brand ở trên
-        'red-brand': 'var(--color-red-brand)', 
-      }
+        'red-brand': 'var(--color-red-brand)',
+        'red-brand-hover': 'var(--color-red-brand-hover)',
+        'black-base': 'var(--color-black-base)',
+        'black-soft': 'var(--color-black-soft)',
+        surface: 'var(--color-surface)',
+        'surface-muted': 'var(--color-surface-muted)',
+        'text-primary': 'var(--color-text-primary)',
+        'text-secondary': 'var(--color-text-secondary)',
+        'border-muted': 'var(--color-border-muted)',
+      },
+      borderRadius: {
+        card: 'var(--radius-card)',
+        pill: 'var(--radius-pill)',
+      },
+      boxShadow: {
+        brand: 'var(--shadow-brand)',
+      },
     },
   },
   plugins: [],
