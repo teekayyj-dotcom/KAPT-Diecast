@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Globe, User, ShoppingCart, Menu, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -36,20 +37,21 @@ const Header = () => {
       
       {/* 1. Logo */}
       <div className="w-auto lg:w-1/4 flex-shrink-0 cursor-pointer z-[110]">
-        <h1 className="text-xl font-bold uppercase tracking-wider flex items-center text-white">
+        <Link to="/" className="text-xl font-bold uppercase tracking-wider flex items-center text-white">
           <span>KAPT</span>
           <span className="text-red-brand">DIECAST</span> 
-        </h1>
+        </Link>
       </div>
 
       {/* ================= DESKTOP VIEW ================= */}
       
       <div className="hidden lg:flex flex-1 justify-center items-center">
         <nav className="flex items-center gap-8 text-sm font-light tracking-wide text-white">
-          <a href="#" className="whitespace-nowrap hover:text-red-brand transition-colors duration-200">About Us</a>
-          <a href="#" className="whitespace-nowrap hover:text-red-brand transition-colors duration-200">Product</a>
-          <a href="#" className="whitespace-nowrap hover:text-red-brand transition-colors duration-200">Blog</a>
-          <a href="#" className="whitespace-nowrap hover:text-red-brand transition-colors duration-200">Services</a>
+          <Link to="/" className="whitespace-nowrap hover:text-red-brand transition-colors duration-200">Home</Link>
+          <Link to="/about" className="whitespace-nowrap hover:text-red-brand transition-colors duration-200">About Us</Link>
+          <Link to="/products" className="whitespace-nowrap hover:text-red-brand transition-colors duration-200">Product</Link>
+          <Link to="/blog" className="whitespace-nowrap hover:text-red-brand transition-colors duration-200">Blog</Link>
+          <Link to="/services" className="whitespace-nowrap hover:text-red-brand transition-colors duration-200">Services</Link>
         </nav>
       </div>
 
@@ -60,13 +62,13 @@ const Header = () => {
         <button className="hover:text-red-brand transition-colors duration-200">
           <Globe className="w-5 h-5" strokeWidth={1.5} />
         </button>
-        <button className="hover:text-red-brand transition-colors duration-200">
+        <Link to="/login" className="hover:text-red-brand transition-colors duration-200">
           <User className="w-5 h-5" strokeWidth={1.5} />
-        </button>
-        <button className="hover:text-red-brand transition-colors duration-200 relative">
+        </Link>
+        <Link to="/cart" className="hover:text-red-brand transition-colors duration-200 relative">
           <ShoppingCart className="w-5 h-5" strokeWidth={1.5} />
           <span className="absolute -top-2 -right-2 bg-red-brand text-white text-[10px] font-medium w-4 h-4 flex items-center justify-center rounded-full">3</span>
-        </button>
+        </Link>
       </div>
 
 
@@ -94,22 +96,23 @@ const Header = () => {
       >
         <div className="flex flex-col h-full px-6 py-8 text-white">
           <nav className="flex flex-col gap-8 text-2xl font-medium tracking-wide border-b border-gray-800 pb-10 mb-10">
-            <a href="#" className="hover:text-red-brand transition-colors duration-200">About Us</a>
-            <a href="#" className="hover:text-red-brand transition-colors duration-200">Product</a>
-            <a href="#" className="hover:text-red-brand transition-colors duration-200">Blog</a>
-            <a href="#" className="hover:text-red-brand transition-colors duration-200">Services</a>
+            <Link to="/" onClick={toggleMenu} className="hover:text-red-brand transition-colors duration-200">Home</Link>
+            <Link to="/about" onClick={toggleMenu} className="hover:text-red-brand transition-colors duration-200">About Us</Link>
+            <Link to="/products" onClick={toggleMenu} className="hover:text-red-brand transition-colors duration-200">Product</Link>
+            <Link to="/blog" onClick={toggleMenu} className="hover:text-red-brand transition-colors duration-200">Blog</Link>
+            <Link to="/services" onClick={toggleMenu} className="hover:text-red-brand transition-colors duration-200">Services</Link>
           </nav>
           
           <div className="flex justify-around items-center mt-auto pb-8">
-            <button className="flex flex-col items-center gap-2 hover:text-red-brand transition-colors duration-200 relative">
+            <Link to="/cart" onClick={toggleMenu} className="flex flex-col items-center gap-2 hover:text-red-brand transition-colors duration-200 relative">
               <ShoppingCart className="w-6 h-6" strokeWidth={1.5} />
               <span className="absolute -top-2 -right-2 bg-red-brand text-white text-[10px] font-medium w-4 h-4 flex items-center justify-center rounded-full">3</span>
               <span className="text-xs text-gray-400">Cart</span>
-            </button>
-            <button className="flex flex-col items-center gap-2 hover:text-red-brand transition-colors duration-200">
+            </Link>
+            <Link to="/login" onClick={toggleMenu} className="flex flex-col items-center gap-2 hover:text-red-brand transition-colors duration-200">
               <User className="w-6 h-6" strokeWidth={1.5} />
               <span className="text-xs text-gray-400">Account</span>
-            </button>
+            </Link>
             <button className="flex flex-col items-center gap-2 hover:text-red-brand transition-colors duration-200">
               <Globe className="w-6 h-6" strokeWidth={1.5} />
               <span className="text-xs text-gray-400">EN</span>

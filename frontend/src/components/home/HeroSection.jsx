@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import heroBg from '../../assets/media/hero-image.jpg'
 
 const HeroSection = () => {
@@ -33,10 +34,10 @@ const HeroSection = () => {
             Lorem ipsum dolor sit amet consectetur adipiscing elit. Dolor sit amet consectetur adipiscing elit quisque faucibus.
           </p>
           
-          <button className="flex items-center gap-2 bg-red-brand text-white px-8 py-4 text-base font-medium hover:bg-red-700 hover:scale-105 transition-all duration-300">
+          <Link to="/products" className="flex items-center w-fit gap-2 bg-red-brand text-white px-8 py-4 text-base font-medium hover:bg-red-700 hover:scale-105 transition-all duration-300 inline-flex">
             Discover the Collection
             <ChevronRight className="w-5 h-5" />
-          </button>
+          </Link>
 
         </div>
       </div>

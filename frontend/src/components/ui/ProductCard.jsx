@@ -1,43 +1,50 @@
 import React from 'react';
+import { ShoppingCart } from 'lucide-react';
 
 const ProductCard = ({ 
-  title = 'Porsche 911', 
-  price = '$180/day', 
-  image = 'https://images.unsplash.com/photo-1503376710356-748c58257007?q=80&w=800&auto=format&fit=crop', // Tạm dùng ảnh placeholder
-  buttonText = 'Book Now' 
+  title = 'Rolls Royce Cullinan', 
+  price = '4.500.000 VND', 
+  image = 'https://images.unsplash.com/photo-1542282088-fe8426682b8f?q=80&w=800&auto=format&fit=crop', // Temporary car model placeholder
+  scale = '1:32'
 }) => {
   return (
-    <div className="bg-white border border-gray-200 p-6 flex flex-col h-full rounded-sm font-sans group">
+    <div className="bg-white flex flex-col h-full relative group shadow-sm hover:shadow-xl transition-shadow duration-300 font-sans">
       
-      {/* 1. Tên sản phẩm (Góc trái trên cùng) */}
-      <h3 className="text-2xl font-bold text-black mb-2">
-        {title}
-      </h3>
+      {/* Scale Badge */}
+      <div className="absolute top-2 left-2 bg-gray-200 text-gray-400 text-[10px] font-bold px-2 py-0.5 rounded-full z-10">
+        {scale}
+      </div>
 
-      {/* 2. Ảnh sản phẩm (Căn giữa, chiếm phần lớn không gian) */}
-      {/* Dùng flex-1 để tự động đẩy phần footer xuống dưới cùng nếu tên xe có 1 hoặc 2 dòng */}
-      <div className="flex-1 flex items-center justify-center py-8 overflow-hidden cursor-pointer">
+      {/* Cart Icon Triangle */}
+      <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 cursor-pointer">
+        <div className="border-t-[48px] border-t-[#e3342f] border-l-[48px] border-l-transparent"></div>
+        <ShoppingCart className="absolute top-2 right-2 text-white w-4 h-4" />
+      </div>
+
+      {/* Image Area */}
+      <div className="flex-1 flex items-center justify-center p-4 pt-10 pb-4 overflow-hidden bg-white">
         <img 
           src={image} 
           alt={title} 
-          // object-contain giúp ảnh không bị cắt xén, luôn hiển thị trọn vẹn chiếc xe
-          className="w-full h-auto object-contain group-hover:scale-105 transition-transform duration-500 ease-out"
+          className="w-full h-32 object-contain group-hover:scale-105 transition-transform duration-500 ease-out"
         />
       </div>
 
-      {/* 3. Footer: Giá và Nút bấm */}
-      <div className="flex justify-between items-center mt-2">
-        
-        {/* Giá tiền */}
-        <span className="text-xl font-medium text-black">
-          {price}
-        </span>
-        
-        {/* Nút bấm (Bo tròn dạng Pill) */}
-        <button className="px-6 py-2.5 border border-gray-300 rounded-full text-sm font-medium text-black hover:border-black hover:bg-gray-50 transition-all duration-300">
-          {buttonText}
-        </button>
+      {/* Title */}
+      <div className="bg-white text-center pb-4 px-2">
+        <h3 className="text-sm font-extrabold text-black truncate">
+          {title}
+        </h3>
+      </div>
 
+      {/* Bottom Actions Row */}
+      <div className="flex w-full h-[36px] mt-auto">
+        <button className="flex-[4] bg-[#1a1a1a] text-white text-[10px] font-bold flex items-center justify-center hover:bg-black transition-colors focus:outline-none tracking-wider">
+          LEARN MORE
+        </button>
+        <div className="flex-[6] bg-[#e3342f] text-white text-[11px] font-bold flex items-center justify-center">
+          {price}
+        </div>
       </div>
 
     </div>

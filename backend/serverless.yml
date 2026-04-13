@@ -1,0 +1,144 @@
+service: kapt-diecast-ecommerce
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.10 # Bạn có thể đổi sang 3.9 hoặc 3.11 tùy môi trường local
+  stage: ${opt:stage, 'dev'}
+  region: ap-southeast-1 # Region Singapore, gần Việt Nam cho độ trễ thấp
+  environment:
+    PRODUCTS_TABLE: ${self:service}-${self:provider.stage}-products
+    CARTS_TABLE: ${self:service}-${self:provider.stage}-carts
+    ORDERS_TABLE: ${self:service}-${self:provider.stage}-orders
+    ORDER_ITEMS_TABLE: ${self:service}-${self:provider.stage}-order-items
+  
+  # Cấp quyền chung cho tất cả Lambda functions thao tác với DynamoDB
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${self:provider.stage}-*"
+
+# Khai báo các plugin cần thiết (nhớ chạy 'npm install -g serverless-python-requirements' trước nhé)
+plugins:
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    dockerizePip: non-linux # Giúp build các thư viện có C-extensions (như psycopg2, numpy...) chuẩn môi trường Lambda
+
+functions:
+  # 1. Product Service
+  productService:
+    handler: services/product_service/handler.main
+    events:
+      - http:
+          path: /products
+          method: get
+          cors: true
+      - http:
+          path: /products/{id}
+          method: get
+          cors: true
+
+  # 2. Cart Service
+  cartService:
+    handler: services/cart_service/handler.main
+    events:
+      - http:
+          path: /cart
+          method: get
+          cors: true
+          # Sẽ cần thêm authorizer Cognito ở đây sau
+      - http:
+          path: /cart
+          method: post
+          cors: true
+      - http:
+          path: /cart/{itemId}
+          method: delete
+          cors: true
+
+  # 3. Order Service
+  orderService:
+    handler: services/order_service/handler.main
+    events:
+      - http:
+          path: /orders
+          method: post
+          cors: true
+
+  # 4. Payment Mock Service
+  paymentMockService:
+    handler: services/payment_mock/handler.main
+    events:
+      - http:
+          path: /payment/mock
+          method: post
+          cors: true
+
+resources:
+  Resources:
+    # --- DynamoDB Tables ---
+    ProductsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.PRODUCTS_TABLE}
+        AttributeDefinitions:
+          - AttributeName: productId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: productId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST # Tối ưu chi phí cho mô hình serverless
+
+    CartsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.CARTS_TABLE}
+        AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: userId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TimeToLiveSpecification:
+          AttributeName: ttl # Thuộc tính dùng để tự động xóa giỏ hàng
+          Enabled: true
+
+    OrdersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.ORDERS_TABLE}
+        AttributeDefinitions:
+          - AttributeName: orderId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: orderId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
+    OrderItemsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.ORDER_ITEMS_TABLE}
+        AttributeDefinitions:
+          - AttributeName: orderId
+            AttributeType: S
+          - AttributeName: productId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: orderId
+            KeyType: HASH
+          - AttributeName: productId
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
