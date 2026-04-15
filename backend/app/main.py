@@ -9,7 +9,7 @@ from .core.config import settings
 from .db.base import Base
 from .db.bootstrap import bootstrap_default_data
 from .db.session import engine
-from .models import Product, User
+from .models import Product, User, Blog, Poster
 from .utils.storage import ensure_storage_directories
 
 

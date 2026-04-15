@@ -27,3 +27,10 @@ class ProductService:
 
         return self.repository.update(product)
 
+    def delete_product(self, product_id: int):
+        product = self.repository.get_by_id(product_id)
+        if not product:
+            return False
+        self.repository.delete(product)
+        return True
+

@@ -1,17 +1,60 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Plus, Edit2, Trash2, Filter, MoreHorizontal } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const MOCK_USERS = [
-  { id: "#USR-101", name: "John Doe", email: "john@example.com", status: "Active", date: "2026-03-12" },
-  { id: "#USR-102", name: "Sarah Smith", email: "sarah@example.com", status: "Inactive", date: "2026-03-10" },
-  { id: "#USR-103", name: "Mike Johnson", email: "mike@example.com", status: "Active", date: "2026-03-08" },
-  { id: "#USR-104", name: "Emily Brown", email: "emily@example.com", status: "Pending", date: "2026-03-05" },
-  { id: "#USR-105", name: "Alex Wilson", email: "alex@example.com", status: "Active", date: "2026-03-01" },
-];
-
 export function Users() {
   const [search, setSearch] = useState("");
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8001";
+
+  const fetchUsers = async (searchQuery = "") => {
+    try {
+      setLoading(true);
+      setError(null);
+      const url = new URL(`${apiBaseUrl}/users`);
+      if (searchQuery) {
+        url.searchParams.append("q", searchQuery);
+      }
+      
+      const response = await fetch(url.toString());
+      if (!response.ok) {
+        throw new Error("Failed to fetch users");
+      }
+      const data = await response.json();
+      setUsers(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this user?")) return;
+    try {
+      const response = await fetch(`${apiBaseUrl}/users/${id}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        setUsers(users.filter((user) => user.id !== id));
+      } else {
+        throw new Error("Failed to delete user");
+      }
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      fetchUsers(search);
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [search]);
 
   return (
     <div className="space-y-6">
@@ -68,56 +111,78 @@ export function Users() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {MOCK_USERS.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="py-4 px-6 text-sm font-medium text-black">
-                    {user.id}
-                  </td>
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-600">
-                        {user.name.charAt(0)}
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-black">{user.name}</div>
-                        <div className="text-xs text-gray-400">{user.email}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-4 px-6">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
-                        user.status === "Active"
-                          ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                          : user.status === "Inactive"
-                          ? "bg-gray-50 text-gray-600 border-gray-200"
-                          : "bg-orange-50 text-orange-600 border-orange-100"
-                      }`}
-                    >
-                      {user.status}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6 text-sm text-gray-500">{user.date}</td>
-                  <td className="py-4 px-6 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 rounded transition-colors">
-                        <Edit2 size={16} />
-                      </button>
-                      <button className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors">
-                        <Trash2 size={16} />
-                      </button>
-                      <button className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 rounded transition-colors">
-                        <MoreHorizontal size={16} />
-                      </button>
-                    </div>
+              {loading ? (
+                <tr>
+                  <td colSpan="5" className="py-8 text-center text-gray-500">
+                    Loading users...
                   </td>
                 </tr>
-              ))}
+              ) : error ? (
+                <tr>
+                  <td colSpan="5" className="py-8 text-center text-red-500">
+                    {error}
+                  </td>
+                </tr>
+              ) : users.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="py-8 text-center text-gray-500">
+                    No users found.
+                  </td>
+                </tr>
+              ) : (
+                users.map((user) => (
+                  <tr key={user.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="py-4 px-6 text-sm font-medium text-black">
+                      #USR-{user.id.toString().padStart(3, '0')}
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-600">
+                          {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-black">{user.name || "N/A"}</div>
+                          <div className="text-xs text-gray-400">{user.email}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border capitalize ${
+                          user.status === "active"
+                            ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                            : user.status === "inactive"
+                            ? "bg-gray-50 text-gray-600 border-gray-200"
+                            : "bg-orange-50 text-orange-600 border-orange-100"
+                        }`}
+                      >
+                        {user.status || "active"}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6 text-sm text-gray-500">
+                      {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
+                    </td>
+                    <td className="py-4 px-6 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Link to={`/admin/users/edit/${user.id}`} className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 rounded transition-colors">
+                          <Edit2 size={16} />
+                        </Link>
+                        <button onClick={() => handleDelete(user.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors">
+                          <Trash2 size={16} />
+                        </button>
+                        <button className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 rounded transition-colors">
+                          <MoreHorizontal size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
         <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-gray-50/30 text-sm">
-          <span className="text-gray-500">Showing 1 to 5 of 124 entries</span>
+          <span className="text-gray-500">Showing {users.length} entries</span>
           <div className="flex items-center gap-2">
             <button className="px-3 py-1 border border-gray-200 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-50">
               Previous

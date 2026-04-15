@@ -29,3 +29,7 @@ class ProductRepository:
         self.db.refresh(product)
         return product
 
+    def delete(self, product: Product):
+        self.db.delete(product)
+        self.db.commit()
+

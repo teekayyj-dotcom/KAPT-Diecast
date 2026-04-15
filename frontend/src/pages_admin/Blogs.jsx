@@ -1,16 +1,60 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Plus, Edit2, Trash2, Filter, MoreHorizontal, Image as ImageIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const MOCK_BLOGS = [
-  { id: "#BLG-001", title: "Top 10 AUTOart Models of 2026", category: "Review", status: "Published", date: "2026-04-01", thumb: "https://images.unsplash.com/photo-1542451313-0ceafca9c1b7?auto=format&fit=crop&q=80&w=150&h=100" },
-  { id: "#BLG-002", title: "Scale 1:18 vs 1:43 Comparison", category: "Guide", status: "Draft", date: "2026-03-28", thumb: "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=150&h=100" },
-  { id: "#BLG-003", title: "Upcoming Ferrari Releases", category: "News", status: "Published", date: "2026-03-25", thumb: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&q=80&w=150&h=100" },
-  { id: "#BLG-004", title: "Diecast Collection Event 2026", category: "Event", status: "Upcoming", date: "2026-03-20", thumb: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=150&h=100" },
-];
-
 export function Blogs() {
   const [search, setSearch] = useState("");
+  const [blogs, setBlogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8001";
+
+  const fetchBlogs = async (searchQuery = "") => {
+    try {
+      setLoading(true);
+      setError(null);
+      const url = new URL(`${apiBaseUrl}/blogs`);
+      if (searchQuery) {
+        url.searchParams.append("q", searchQuery);
+      }
+      
+      const response = await fetch(url.toString());
+      if (!response.ok) {
+        throw new Error("Failed to fetch blogs");
+      }
+      const data = await response.json();
+      setBlogs(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this blog?")) return;
+    try {
+      const response = await fetch(`${apiBaseUrl}/blogs/${id}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        setBlogs(blogs.filter((blog) => blog.id !== id));
+      } else {
+        throw new Error("Failed to delete blog");
+      }
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      fetchBlogs(search);
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [search]);
 
   return (
     <div className="space-y-6">
@@ -64,62 +108,84 @@ export function Blogs() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {MOCK_BLOGS.map((blog) => (
-                <tr key={blog.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="py-4 px-6 text-sm font-medium text-black">
-                    {blog.id}
-                  </td>
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-16 h-12 rounded-md overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-200 shrink-0">
-                        {blog.thumb ? (
-                          <img src={blog.thumb} alt={blog.title} className="w-full h-full object-cover" />
-                        ) : (
-                          <ImageIcon className="text-gray-400" size={20} />
-                        )}
-                      </div>
-                      <div>
-                        <div className="text-sm font-semibold text-black mb-0.5">{blog.title}</div>
-                        <div className="text-xs text-gray-400 font-medium bg-gray-100 inline-block px-2 py-0.5 rounded">
-                          {blog.category}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-4 px-6">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
-                        blog.status === "Published"
-                          ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                          : blog.status === "Draft"
-                          ? "bg-gray-50 text-gray-600 border-gray-200"
-                          : "bg-blue-50 text-blue-600 border-blue-100"
-                      }`}
-                    >
-                      {blog.status}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6 text-sm text-gray-500">{blog.date}</td>
-                  <td className="py-4 px-6 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 rounded transition-colors">
-                        <Edit2 size={16} />
-                      </button>
-                      <button className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors">
-                        <Trash2 size={16} />
-                      </button>
-                      <button className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 rounded transition-colors">
-                        <MoreHorizontal size={16} />
-                      </button>
-                    </div>
+              {loading ? (
+                <tr>
+                  <td colSpan="5" className="py-8 text-center text-gray-500">
+                    Loading posts...
                   </td>
                 </tr>
-              ))}
+              ) : error ? (
+                <tr>
+                  <td colSpan="5" className="py-8 text-center text-red-500">
+                    {error}
+                  </td>
+                </tr>
+              ) : blogs.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="py-8 text-center text-gray-500">
+                    No posts found.
+                  </td>
+                </tr>
+              ) : (
+                blogs.map((blog) => (
+                  <tr key={blog.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="py-4 px-6 text-sm font-medium text-black">
+                      #BLG-{blog.id.toString().padStart(3, '0')}
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-12 rounded-md overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-200 shrink-0">
+                          {blog.featured_image_url ? (
+                            <img src={blog.featured_image_url} alt={blog.title} className="w-full h-full object-cover" />
+                          ) : (
+                            <ImageIcon className="text-gray-400" size={20} />
+                          )}
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold text-black mb-0.5">{blog.title}</div>
+                          <div className="text-xs text-gray-400 font-medium bg-gray-100 inline-block px-2 py-0.5 rounded capitalize">
+                            {blog.post_type}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border capitalize ${
+                          blog.status === "published"
+                            ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                            : blog.status === "draft"
+                            ? "bg-gray-50 text-gray-600 border-gray-200"
+                            : "bg-blue-50 text-blue-600 border-blue-100"
+                        }`}
+                      >
+                        {blog.status}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6 text-sm text-gray-500">
+                      {blog.published_date ? new Date(blog.published_date).toLocaleDateString() : 'N/A'}
+                    </td>
+                    <td className="py-4 px-6 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                        <Link to={`/admin/blogs/edit/${blog.id}`} className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 rounded transition-colors">
+                          <Edit2 size={16} />
+                        </Link>
+                        <button onClick={() => handleDelete(blog.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors">
+                          <Trash2 size={16} />
+                        </button>
+                        <button className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 rounded transition-colors">
+                          <MoreHorizontal size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
         <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-gray-50/30 text-sm">
-          <span className="text-gray-500">Showing 1 to 4 of 48 entries</span>
+          <span className="text-gray-500">Showing {blogs.length} entries</span>
           <div className="flex items-center gap-2">
             <button className="px-3 py-1 border border-gray-200 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-50">
               Previous

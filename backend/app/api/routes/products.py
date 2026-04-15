@@ -92,3 +92,12 @@ def upload_product_images(
         ),
     )
     return updated_product
+
+@router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_product(
+    product_id: int,
+    service: ProductService = Depends(get_product_service),
+):
+    success = service.delete_product(product_id)
+    if not success:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")

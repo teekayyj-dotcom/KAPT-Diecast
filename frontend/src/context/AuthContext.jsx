@@ -11,9 +11,24 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user)
       setRole(user ? getUserRole(user) : 'guest')
+      
+      if (user) {
+        try {
+          const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8001";
+          const token = await user.getIdToken();
+          await fetch(`${apiBaseUrl}/auth/me`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
+        } catch (e) {
+          console.error("Failed to sync user with backend", e);
+        }
+      }
+      
       setLoading(false)
     })
 

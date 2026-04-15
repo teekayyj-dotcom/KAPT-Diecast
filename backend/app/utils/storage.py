@@ -34,3 +34,12 @@ def build_product_storage_paths(product_id: int) -> tuple[Path, Path]:
     product_dir = Path(settings.storage_dir) / "products" / str(product_id)
     return product_dir / "main", product_dir / "gallery"
 
+
+def build_blog_storage_paths(blog_id: int) -> Path:
+    blog_dir = Path(settings.storage_dir) / "blogs" / str(blog_id)
+    return blog_dir / "featured"
+
+
+def build_poster_storage_paths(poster_id: int) -> Path:
+    poster_dir = Path(settings.storage_dir) / "posters" / str(poster_id)
+    return poster_dir

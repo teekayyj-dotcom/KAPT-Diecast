@@ -4,12 +4,9 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: kapt-fastapi
+    env_file:
+      - ./.env
     environment:
-      MYSQL_HOST: Admin-KAPT
-      MYSQL_PORT: 3307
-      MYSQL_DATABASE: kapt_diecast
-      MYSQL_USER: root
-      MYSQL_PASSWORD: [KAPT_admin_123]
       GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS}
     ports:
       - "8001:8000"
@@ -23,11 +20,13 @@ services:
     image: mysql:8.4
     container_name: kapt-mysql
     restart: unless-stopped
+    env_file:
+      - ./.env
     environment:
-      MYSQL_ROOT_PASSWORD: [KAPT_admin_123]
-      MYSQL_DATABASE: kapt_diecast
-      MYSQL_USER: root
-      MYSQL_PASSWORD: [KAPT_admin_123]
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - "3307:3306"
     volumes:
