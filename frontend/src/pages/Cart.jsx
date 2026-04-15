@@ -1,8 +1,21 @@
 import React from 'react';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
+import { useCart } from '../context/CartContext';
 
 const CartPage = () => {
+  const { cartItems, subtotal, removeFromCart, updateQuantity, clearCart } = useCart();
+  const shippingFee = cartItems.length > 0 ? 50 : 0;
+  const orderTotal = subtotal + shippingFee;
+
+  const formatPrice = (price) =>
+    new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(Number(price) || 0);
+
   return (
     <div className="bg-[#1c1c1c] min-h-screen font-sans flex flex-col">
       <Header />
@@ -17,89 +30,66 @@ const CartPage = () => {
 
         {/* Cart Items List */}
         <div className="flex flex-col border border-[#333] rounded-sm overflow-hidden mb-16">
-          
-          {/* Item 1 */}
-          <div className="flex flex-col md:flex-row bg-[#222] border-b border-[#333] last:border-0 relative min-h-[220px]">
-            {/* Image */}
-            <div className="w-full md:w-56 h-48 md:h-auto bg-white flex-shrink-0 flex items-center justify-center p-4">
-              <img src="https://images.unsplash.com/photo-1542282088-fe8426682b8f?q=80&w=800" alt="Bugatti Divo" className="w-full h-full object-contain" />
+          {cartItems.length === 0 ? (
+            <div className="bg-[#222] px-6 py-12 text-center text-gray-400">
+              Your cart is currently empty. Add products from the Product page.
             </div>
-            
-            {/* Details */}
-            <div className="flex-1 p-6 lg:p-8 flex flex-col justify-between">
-              <div>
-                <span className="bg-gray-400 text-[#222] text-[10px] font-extrabold px-3 py-1 rounded-full mb-3 inline-block">1:24</span>
-                <h3 className="text-xl font-extrabold uppercase tracking-widest mb-1">BUGATTI DIVO DARK GRAY</h3>
-                <p className="text-gray-400 text-sm uppercase">MAISO</p>
-              </div>
-              <div className="flex items-center text-xs text-gray-400 mt-6 font-bold tracking-wider">
-                <span>COLOR:</span>
-                <div className="w-4 h-4 rounded-full bg-blue-500 ml-3 mr-3 shadow-sm shadow-black/50"></div>
-                <button className="border border-gray-600 rounded-full px-4 py-1 text-[10px] hover:text-white hover:border-white transition-colors uppercase">EDIT</button>
-              </div>
-            </div>
-
-            {/* Actions (Right Side) */}
-            <div className="p-6 lg:p-8 flex flex-col justify-between items-end min-w-[380px]">
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center space-x-4">
-                   <span className="text-xs font-bold text-white uppercase tracking-widest">QUANTITY:</span>
-                   <div className="flex items-center space-x-2">
-                     <button className="w-8 h-8 rounded-full border border-gray-500 flex items-center justify-center text-white hover:border-white hover:bg-white/10 transition-colors">-</button>
-                     <div className="w-12 h-8 bg-white text-black font-extrabold flex items-center justify-center rounded-sm text-sm">1</div>
-                     <button className="w-8 h-8 rounded-full bg-[#e3342f] text-white flex items-center justify-center border border-[#e3342f] hover:bg-red-700 transition-colors">+</button>
-                   </div>
+          ) : (
+            cartItems.map((item) => (
+              <div key={item.id} className="flex flex-col md:flex-row bg-[#222] border-b border-[#333] last:border-0 relative min-h-[220px]">
+                <div className="w-full md:w-56 h-48 md:h-auto bg-white flex-shrink-0 flex items-center justify-center p-4">
+                  <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
                 </div>
-                <div className="text-xl font-extrabold text-white tracking-widest ml-4">4.500.000 VND</div>
-              </div>
-              
-              <button className="border border-gray-600 rounded-full px-8 py-2 text-[11px] font-bold tracking-wider uppercase text-gray-400 hover:text-white hover:border-white transition-colors mt-8">
-                Remove
-              </button>
-            </div>
-          </div>
 
-          {/* Item 2 */}
-          <div className="flex flex-col md:flex-row bg-[#222] border-b border-[#333] last:border-0 relative min-h-[220px]">
-             {/* Image */}
-            <div className="w-full md:w-56 h-48 md:h-auto bg-white flex-shrink-0 flex items-center justify-center p-4">
-              <img src="https://images.unsplash.com/photo-1503376710356-748c58257007?q=80&w=800" alt="Porsche 911" className="w-full h-full object-contain" />
-            </div>
-            
-            {/* Details */}
-            <div className="flex-1 p-6 lg:p-8 flex flex-col justify-between">
-              <div>
-                <span className="bg-gray-400 text-[#222] text-[10px] font-extrabold px-3 py-1 rounded-full mb-3 inline-block">1:36</span>
-                <h3 className="text-xl font-extrabold uppercase tracking-widest mb-1">PORSCHE 911 TURBO 1978</h3>
-                <p className="text-gray-400 text-sm uppercase">TOKAXI</p>
-              </div>
-              <div className="flex items-center text-xs text-gray-400 mt-6 font-bold tracking-wider">
-                <span>COLOR:</span>
-                <div className="w-4 h-4 rounded-full bg-green-900 ml-3 mr-3 shadow-sm shadow-black/50"></div>
-                <button className="border border-gray-600 rounded-full px-4 py-1 text-[10px] hover:text-white hover:border-white transition-colors uppercase">EDIT</button>
-              </div>
-            </div>
-
-            {/* Actions (Right Side) */}
-            <div className="p-6 lg:p-8 flex flex-col justify-between items-end min-w-[380px]">
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center space-x-4">
-                   <span className="text-xs font-bold text-white uppercase tracking-widest">QUANTITY:</span>
-                   <div className="flex items-center space-x-2">
-                     <button className="w-8 h-8 rounded-full border border-gray-500 flex items-center justify-center text-white hover:border-white hover:bg-white/10 transition-colors">-</button>
-                     <div className="w-12 h-8 bg-white text-black font-extrabold flex items-center justify-center rounded-sm text-sm">1</div>
-                     <button className="w-8 h-8 rounded-full bg-[#e3342f] text-white flex items-center justify-center border border-[#e3342f] hover:bg-red-700 transition-colors">+</button>
-                   </div>
+                <div className="flex-1 p-6 lg:p-8 flex flex-col justify-between">
+                  <div>
+                    <span className="bg-gray-400 text-[#222] text-[10px] font-extrabold px-3 py-1 rounded-full mb-3 inline-block">{item.scale}</span>
+                    <h3 className="text-xl font-extrabold uppercase tracking-widest mb-1">{item.name}</h3>
+                    <p className="text-gray-400 text-sm uppercase">{item.brand || 'DIECAST MODEL'}</p>
+                  </div>
+                  <div className="flex items-center text-xs text-gray-400 mt-6 font-bold tracking-wider gap-3">
+                    <span>COLOR:</span>
+                    <span className="uppercase text-gray-200">{item.color || 'N/A'}</span>
+                  </div>
                 </div>
-                <div className="text-xl font-extrabold text-white tracking-widest ml-4">620.000 VND</div>
-              </div>
-              
-              <button className="border border-gray-600 rounded-full px-8 py-2 text-[11px] font-bold tracking-wider uppercase text-gray-400 hover:text-white hover:border-white transition-colors mt-8">
-                Remove
-              </button>
-            </div>
-          </div>
 
+                <div className="p-6 lg:p-8 flex flex-col justify-between items-end min-w-[380px]">
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center space-x-4">
+                      <span className="text-xs font-bold text-white uppercase tracking-widest">QUANTITY:</span>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          className="w-8 h-8 rounded-full border border-gray-500 flex items-center justify-center text-white hover:border-white hover:bg-white/10 transition-colors"
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        >
+                          -
+                        </button>
+                        <div className="w-12 h-8 bg-white text-black font-extrabold flex items-center justify-center rounded-sm text-sm">
+                          {item.quantity}
+                        </div>
+                        <button
+                          className="w-8 h-8 rounded-full bg-[#e3342f] text-white flex items-center justify-center border border-[#e3342f] hover:bg-red-700 transition-colors"
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                    <div className="text-xl font-extrabold text-white tracking-widest ml-4">
+                      {formatPrice(item.price * item.quantity)}
+                    </div>
+                  </div>
+
+                  <button
+                    className="border border-gray-600 rounded-full px-8 py-2 text-[11px] font-bold tracking-wider uppercase text-gray-400 hover:text-white hover:border-white transition-colors mt-8"
+                    onClick={() => removeFromCart(item.id)}
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         {/* Promo & Totals Row */}
@@ -113,21 +103,29 @@ const CartPage = () => {
                 Apply
               </button>
             </div>
+            {cartItems.length > 0 && (
+              <button
+                className="mt-4 border border-gray-600 rounded-full px-6 py-2 text-[11px] font-bold tracking-wider uppercase text-gray-400 hover:text-white hover:border-white transition-colors"
+                onClick={clearCart}
+              >
+                Clear Cart
+              </button>
+            )}
           </div>
 
           {/* Totals */}
           <div className="w-full md:w-[420px] text-sm">
             <div className="flex justify-between mb-4 text-gray-400 font-medium">
-              <span>2 Item(s) Subtotal</span>
-              <span className="text-gray-300">5.120.000 VND</span>
+              <span>{cartItems.length} Item(s) Subtotal</span>
+              <span className="text-gray-300">{formatPrice(subtotal)}</span>
             </div>
             <div className="flex justify-between mb-8 text-gray-400 font-medium">
               <span>Shipping and Handling</span>
-              <span className="text-gray-300">50.000 VND</span>
+              <span className="text-gray-300">{formatPrice(shippingFee)}</span>
             </div>
             <div className="flex justify-between border-t border-[#444] pt-6 items-end mt-4">
               <span className="font-extrabold text-base tracking-widest">ORDER TOTAL:</span>
-              <span className="font-extrabold text-xl tracking-wider text-white">5.170.000 VND</span>
+              <span className="font-extrabold text-xl tracking-wider text-white">{formatPrice(orderTotal)}</span>
             </div>
           </div>
         </div>

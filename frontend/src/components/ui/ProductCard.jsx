@@ -3,9 +3,10 @@ import { ShoppingCart } from 'lucide-react';
 
 const ProductCard = ({ 
   title = 'Rolls Royce Cullinan', 
-  price = '4.500.000 VND', 
+  price = '$4,500.00', 
   image = 'https://images.unsplash.com/photo-1542282088-fe8426682b8f?q=80&w=800&auto=format&fit=crop', // Temporary car model placeholder
-  scale = '1:32'
+  scale = '1:32',
+  onAddToCart
 }) => {
   return (
     <div className="bg-white flex flex-col h-full relative group shadow-sm hover:shadow-xl transition-shadow duration-300 font-sans">
@@ -16,10 +17,15 @@ const ProductCard = ({
       </div>
 
       {/* Cart Icon Triangle */}
-      <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 cursor-pointer">
+      <button
+        type="button"
+        onClick={onAddToCart}
+        className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 cursor-pointer"
+        aria-label={`Add ${title} to cart`}
+      >
         <div className="border-t-[48px] border-t-[#e3342f] border-l-[48px] border-l-transparent"></div>
         <ShoppingCart className="absolute top-2 right-2 text-white w-4 h-4" />
-      </div>
+      </button>
 
       {/* Image Area */}
       <div className="flex-1 flex items-center justify-center p-4 pt-10 pb-4 overflow-hidden bg-white">

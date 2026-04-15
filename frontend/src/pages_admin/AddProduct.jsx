@@ -15,6 +15,12 @@ import {
   ArrowLeft
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import {
+  COLOR_OPTIONS,
+  DIECAST_BRAND_OPTIONS,
+  ORIGINAL_BRAND_OPTIONS,
+  SCALE_OPTIONS,
+} from "../constants/productOptions";
 
 export function AddProduct() {
   const [inStock, setInStock] = useState(true);
@@ -240,11 +246,9 @@ export function AddProduct() {
                   </label>
                   <select value={originalBrand} onChange={(e) => setOriginalBrand(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white transition-all text-black appearance-none">
                     <option value="" disabled>Select Brand</option>
-                    <option value="porsche">Porsche</option>
-                    <option value="ferrari">Ferrari</option>
-                    <option value="lamborghini">Lamborghini</option>
-                    <option value="bmw">BMW</option>
-                    <option value="audi">Audi</option>
+                    {ORIGINAL_BRAND_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
@@ -253,11 +257,9 @@ export function AddProduct() {
                   </label>
                   <select value={diecastBrand} onChange={(e) => setDiecastBrand(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white transition-all text-black appearance-none">
                     <option value="" disabled>Select Manufacturer</option>
-                    <option value="autoart">AUTOart</option>
-                    <option value="cmc">CMC</option>
-                    <option value="hotwheels">Hot Wheels</option>
-                    <option value="minichamps">Minichamps</option>
-                    <option value="norev">Norev</option>
+                    {DIECAST_BRAND_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -270,11 +272,9 @@ export function AddProduct() {
                   </label>
                   <select value={scale} onChange={(e) => setScale(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white transition-all text-black appearance-none">
                     <option value="" disabled>Select Scale</option>
-                    <option value="1:12">1:12</option>
-                    <option value="1:18">1:18</option>
-                    <option value="1:24">1:24</option>
-                    <option value="1:43">1:43</option>
-                    <option value="1:64">1:64</option>
+                    {SCALE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
@@ -283,12 +283,9 @@ export function AddProduct() {
                   </label>
                   <select value={color} onChange={(e) => setColor(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white transition-all text-black appearance-none">
                     <option value="" disabled>Select Color</option>
-                    <option value="red">Racing Red</option>
-                    <option value="black">Jet Black</option>
-                    <option value="white">Alpine White</option>
-                    <option value="silver">GT Silver</option>
-                    <option value="yellow">Racing Yellow</option>
-                    <option value="blue">Shark Blue</option>
+                    {COLOR_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
                   </select>
                 </div>
               </div>

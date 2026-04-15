@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Globe, User, ShoppingCart, Menu, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useCart } from '../../context/CartContext';
 import { logout } from '../../services/authService';
 
 const Header = () => {
@@ -9,6 +10,7 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { currentUser } = useAuth();
+  const { totalItems } = useCart();
 
   const toggleMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
 
@@ -98,7 +100,11 @@ const Header = () => {
         )}
         <Link to="/cart" className="hover:text-red-brand transition-colors duration-200 relative">
           <ShoppingCart className="w-5 h-5" strokeWidth={1.5} />
-          <span className="absolute -top-2 -right-2 bg-red-brand text-white text-[10px] font-medium w-4 h-4 flex items-center justify-center rounded-full">3</span>
+          {totalItems > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-brand text-white text-[10px] font-medium min-w-4 h-4 px-1 flex items-center justify-center rounded-full">
+              {totalItems}
+            </span>
+          )}
         </Link>
       </div>
 
@@ -137,7 +143,11 @@ const Header = () => {
           <div className="flex justify-around items-center mt-auto pb-8">
             <Link to="/cart" onClick={toggleMenu} className="flex flex-col items-center gap-2 hover:text-red-brand transition-colors duration-200 relative">
               <ShoppingCart className="w-6 h-6" strokeWidth={1.5} />
-              <span className="absolute -top-2 -right-2 bg-red-brand text-white text-[10px] font-medium w-4 h-4 flex items-center justify-center rounded-full">3</span>
+              {totalItems > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-brand text-white text-[10px] font-medium min-w-4 h-4 px-1 flex items-center justify-center rounded-full">
+                  {totalItems}
+                </span>
+              )}
               <span className="text-xs text-gray-400">Cart</span>
             </Link>
             {currentUser ? (
