@@ -1,0 +1,23 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: kapt-virtualservice
+  namespace: default
+spec:
+  hosts:
+    - "*"
+  gateways:
+    - kapt-gateway
+  http:
+    - match:
+        - uri:
+            prefix: /api
+        - uri:
+            prefix: /docs
+        - uri:
+            prefix: /openapi.json
+      route:
+        - destination:
+            host: kapt-api-service
+            port:
+              number: 80

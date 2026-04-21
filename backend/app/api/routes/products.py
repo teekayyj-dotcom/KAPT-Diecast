@@ -7,7 +7,7 @@ from ...db.session import get_db
 from ...repositories.product_repository import ProductRepository
 from ...schemas.product import ProductCreate, ProductResponse, ProductUpdate
 from ...services.product_service import ProductService
-from ...utils.storage import build_product_storage_paths, save_upload_file
+from ...utils.storage import upload_to_s3
 
 
 router = APIRouter()
@@ -68,21 +68,16 @@ def upload_product_images(
     if not product:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
 
-    main_dir, gallery_dir = build_product_storage_paths(product_id)
     main_image_url = product.main_image_url
     gallery_image_urls = list(product.gallery_image_urls or [])
 
     if main_image:
-        filename = save_upload_file(main_image, main_dir, "main")
-        main_image_url = str(request.base_url).rstrip("/") + f"/storage/products/{product_id}/main/{filename}"
+        main_image_url = upload_to_s3(main_image, f"products/{product_id}/main")
 
     if gallery_images:
         gallery_image_urls = []
         for index, image in enumerate(gallery_images, start=1):
-            filename = save_upload_file(image, gallery_dir, f"gallery-{index}")
-            gallery_image_urls.append(
-                str(request.base_url).rstrip("/") + f"/storage/products/{product_id}/gallery/{filename}"
-            )
+            gallery_image_urls.append(upload_to_s3(image, f"products/{product_id}/gallery"))
 
     updated_product = service.update_product(
         product_id,

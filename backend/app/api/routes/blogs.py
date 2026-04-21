@@ -7,7 +7,7 @@ from ...db.session import get_db
 from ...repositories.blog_repository import BlogRepository
 from ...schemas.blog import BlogCreate, BlogResponse, BlogUpdate
 from ...services.blog_service import BlogService
-from ...utils.storage import build_blog_storage_paths, save_upload_file
+from ...utils.storage import upload_to_s3
 
 
 router = APIRouter()
@@ -67,10 +67,7 @@ def upload_blog_image(
     if not blog:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Blog not found")
 
-    featured_dir = build_blog_storage_paths(blog_id)
-    filename = save_upload_file(featured_image, featured_dir, "featured")
-    
-    featured_image_url = str(request.base_url).rstrip("/") + f"/storage/blogs/{blog_id}/featured/{filename}"
+    featured_image_url = upload_to_s3(featured_image, f"blogs/{blog_id}/featured")
 
     updated_blog = service.update_blog(
         blog_id,

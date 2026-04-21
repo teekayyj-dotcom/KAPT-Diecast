@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kapt-api
+  namespace: default
+  labels:
+    app: kapt-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: kapt-api
+  template:
+    metadata:
+      labels:
+        app: kapt-api
+    spec:
+      containers:
+        - name: fastapi-app
+          image: kapt-api-backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: kapt-config
+            - secretRef:
+                name: kapt-secret
+          volumeMounts:
+            - name: firebase-volume
+              mountPath: /app/credentials
+              readOnly: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /docs
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /docs
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: firebase-volume
+          secret:
+            secretName: firebase-credentials

@@ -6,7 +6,7 @@ from ...db.session import get_db
 from ...repositories.poster_repository import PosterRepository
 from ...schemas.poster import PosterCreate, PosterResponse, PosterUpdate
 from ...services.poster_service import PosterService
-from ...utils.storage import build_poster_storage_paths, save_upload_file
+from ...utils.storage import upload_to_s3
 
 router = APIRouter()
 
@@ -58,10 +58,7 @@ def upload_poster_image(
     if not poster:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Poster not found")
 
-    thumbnail_dir = build_poster_storage_paths(poster_id)
-    filename = save_upload_file(thumbnail, thumbnail_dir, "thumbnail")
-    
-    thumbnail_url = str(request.base_url).rstrip("/") + f"/storage/posters/{poster_id}/{filename}"
+    thumbnail_url = upload_to_s3(thumbnail, f"posters/{poster_id}")
 
     updated_poster = service.update_poster(
         poster_id,

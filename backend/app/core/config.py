@@ -16,7 +16,12 @@ class Settings:
         "/app/credentials/firebase-service-account.json",
     )
     bootstrap_admin_email: str = os.getenv("BOOTSTRAP_ADMIN_EMAIL", "teekayyj@gmail.com")
-    storage_dir: str = os.getenv("STORAGE_DIR", "/app/storage")
+    # AWS S3 Configure
+    aws_access_key_id: str = os.getenv("AWS_ACCESS_KEY_ID", "test")
+    aws_secret_access_key: str = os.getenv("AWS_SECRET_ACCESS_KEY", "test")
+    aws_region: str = os.getenv("AWS_REGION", "ap-south-1")
+    s3_bucket_name: str = os.getenv("S3_BUCKET_NAME", "kapt-diecast")
+    aws_endpoint_url: str | None = os.getenv("AWS_ENDPOINT_URL", "http://localstack:4566")
 
     @property
     def database_url(self) -> str:

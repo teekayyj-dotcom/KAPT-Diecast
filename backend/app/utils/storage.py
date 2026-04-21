@@ -1,45 +1,51 @@
-import os
-import shutil
-from pathlib import Path
-from uuid import uuid4
-
+import uuid
+import boto3
 from fastapi import UploadFile
 
 from ..core.config import settings
 
 
-def ensure_storage_directories():
-    for relative_path in [
-        "products",
-        "users",
-        "blogs",
-        "posters",
-    ]:
-        Path(settings.storage_dir, relative_path).mkdir(parents=True, exist_ok=True)
+def get_s3_client():
+    return boto3.client(
+        "s3",
+        aws_access_key_id=settings.aws_access_key_id,
+        aws_secret_access_key=settings.aws_secret_access_key,
+        region_name=settings.aws_region,
+        endpoint_url=settings.aws_endpoint_url
+    )
 
 
-def save_upload_file(upload_file: UploadFile, destination_dir: Path, prefix: str) -> str:
-    destination_dir.mkdir(parents=True, exist_ok=True)
-    suffix = Path(upload_file.filename or "").suffix or ".jpg"
-    filename = f"{prefix}-{uuid4().hex}{suffix}"
-    file_path = destination_dir / filename
+def upload_to_s3(upload_file: UploadFile, prefix: str) -> str:
+    """
+    Uploads a FastAPI UploadFile to AWS S3 (or LocalStack) and returns the public URL.
+    """
+    s3 = get_s3_client()
+    bucket_name = settings.s3_bucket_name
 
-    with file_path.open("wb") as buffer:
-        shutil.copyfileobj(upload_file.file, buffer)
+    # Determine extension and generate a secure UUID filename
+    filename = upload_file.filename or ""
+    suffix = ""
+    if "." in filename:
+        suffix = f".{filename.rsplit('.', 1)[-1]}"
+    else:
+        suffix = ".jpg"
+        
+    s3_key = f"{prefix}/{uuid.uuid4().hex}{suffix}"
 
-    return filename
+    # Read bytes from file
+    file_bytes = upload_file.file.read()
 
+    # Upload to S3
+    s3.put_object(
+        Bucket=bucket_name,
+        Key=s3_key,
+        Body=file_bytes,
+        ContentType=upload_file.content_type or "image/jpeg"
+    )
 
-def build_product_storage_paths(product_id: int) -> tuple[Path, Path]:
-    product_dir = Path(settings.storage_dir) / "products" / str(product_id)
-    return product_dir / "main", product_dir / "gallery"
-
-
-def build_blog_storage_paths(blog_id: int) -> Path:
-    blog_dir = Path(settings.storage_dir) / "blogs" / str(blog_id)
-    return blog_dir / "featured"
-
-
-def build_poster_storage_paths(poster_id: int) -> Path:
-    poster_dir = Path(settings.storage_dir) / "posters" / str(poster_id)
-    return poster_dir
+    # Return URL (we assume bucket is public or public domain mapping exists)
+    # If endpoint URL exists (localstack), use it; else standard AWS logic
+    if settings.aws_endpoint_url:
+        return f"{settings.aws_endpoint_url}/{bucket_name}/{s3_key}"
+    else:
+        return f"https://{bucket_name}.s3.{settings.aws_region}.amazonaws.com/{s3_key}"
