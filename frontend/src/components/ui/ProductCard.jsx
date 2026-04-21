@@ -1,7 +1,9 @@
 import React from 'react';
 import { ShoppingCart } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const ProductCard = ({ 
+  id,
   title = 'Rolls Royce Cullinan', 
   price = '$4,500.00', 
   image = 'https://images.unsplash.com/photo-1542282088-fe8426682b8f?q=80&w=800&auto=format&fit=crop', // Temporary car model placeholder
@@ -27,27 +29,25 @@ const ProductCard = ({
         <ShoppingCart className="absolute top-2 right-2 text-white w-4 h-4" />
       </button>
 
-      {/* Image Area */}
-      <div className="flex-1 flex items-center justify-center p-4 pt-10 pb-4 overflow-hidden bg-white">
+      {/* Image and Title Area (Clickable) */}
+      <Link to={`/products/${id}`} className="flex-1 flex flex-col items-center p-4 pt-10 pb-4 overflow-hidden bg-white group-hover:opacity-95">
         <img 
           src={image} 
           alt={title} 
-          className="w-full h-32 object-contain group-hover:scale-105 transition-transform duration-500 ease-out"
+          className="w-full h-32 object-contain group-hover:scale-105 transition-transform duration-500 ease-out mb-2"
         />
-      </div>
-
-      {/* Title */}
-      <div className="bg-white text-center pb-4 px-2">
-        <h3 className="text-sm font-extrabold text-black truncate">
-          {title}
-        </h3>
-      </div>
+        <div className="w-full text-center px-2 mt-auto">
+          <h3 className="text-sm font-extrabold text-black truncate">
+            {title}
+          </h3>
+        </div>
+      </Link>
 
       {/* Bottom Actions Row */}
       <div className="flex w-full h-[36px] mt-auto">
-        <button className="flex-[4] bg-[#1a1a1a] text-white text-[10px] font-bold flex items-center justify-center hover:bg-black transition-colors focus:outline-none tracking-wider">
+        <Link to={`/products/${id}`} className="flex-[4] bg-[#1a1a1a] text-white text-[10px] font-bold flex items-center justify-center hover:bg-black transition-colors focus:outline-none tracking-wider">
           LEARN MORE
-        </button>
+        </Link>
         <div className="flex-[6] bg-[#e3342f] text-white text-[11px] font-bold flex items-center justify-center">
           {price}
         </div>

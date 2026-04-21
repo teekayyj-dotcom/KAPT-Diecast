@@ -335,6 +335,7 @@ const ProductPage = () => {
                 visibleProducts.map((product) => (
                   <ProductCard
                     key={product.id}
+                    id={product.id}
                     title={product.name}
                     price={formatPrice(product.price)}
                     image={getImageUrl(product.main_image_url)}

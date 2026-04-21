@@ -37,5 +37,17 @@ services:
       timeout: 5s
       retries: 10
 
+  localstack:
+    image: localstack/localstack
+    container_name: kapt-localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3,lambda,iam,apigateway
+      - DEBUG=${DEBUG:-0}
+    volumes:
+      - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
 volumes:
   mysql_data:
