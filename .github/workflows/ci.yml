@@ -7,9 +7,9 @@ on:
     branches: [ main ]
 
 env:
-  AWS_REGION: us-east-1
+  AWS_REGION: ap-south-1
   ECR_REPOSITORY: ecommerce-api
-  S3_BUCKET: your-frontend-bucket-name
+  S3_BUCKET: kapt-diecast
   CLOUDFRONT_DISTRIBUTION_ID: YOUR_DISTRIBUTION_ID
 
 jobs:
@@ -25,12 +25,12 @@ jobs:
           
       - name: Install backend dependencies
         run: |
-          cd services/monolith-api
+          cd backend
           pip install -r requirements.txt
           
       - name: Run backend tests
         run: |
-          cd services/monolith-api
+          cd backend
           pytest
 
       - name: Configure AWS credentials
@@ -49,7 +49,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          cd services/monolith-api
+          cd backend
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
