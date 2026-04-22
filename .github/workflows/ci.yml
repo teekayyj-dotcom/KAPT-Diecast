@@ -8,7 +8,7 @@ on:
 
 env:
   AWS_REGION: ap-south-1
-  ECR_REPOSITORY: ecommerce-api
+  ECR_REPOSITORY: kapt-api-backend
   S3_BUCKET: kapt-diecast
   CLOUDFRONT_DISTRIBUTION_ID: YOUR_DISTRIBUTION_ID
 
