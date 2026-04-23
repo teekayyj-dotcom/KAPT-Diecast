@@ -67,7 +67,13 @@ def upload_blog_image(
     if not blog:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Blog not found")
 
-    featured_image_url = upload_to_s3(featured_image, f"blogs/{blog_id}/featured")
+    try:
+        featured_image_url = upload_to_s3(featured_image, f"blogs/{blog_id}/featured")
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=str(exc),
+        ) from exc
 
     updated_blog = service.update_blog(
         blog_id,

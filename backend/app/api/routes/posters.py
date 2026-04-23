@@ -58,7 +58,13 @@ def upload_poster_image(
     if not poster:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Poster not found")
 
-    thumbnail_url = upload_to_s3(thumbnail, f"posters/{poster_id}")
+    try:
+        thumbnail_url = upload_to_s3(thumbnail, f"posters/{poster_id}")
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=str(exc),
+        ) from exc
 
     updated_poster = service.update_poster(
         poster_id,

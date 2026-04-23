@@ -71,13 +71,19 @@ def upload_product_images(
     main_image_url = product.main_image_url
     gallery_image_urls = list(product.gallery_image_urls or [])
 
-    if main_image:
-        main_image_url = upload_to_s3(main_image, f"products/{product_id}/main")
+    try:
+        if main_image:
+            main_image_url = upload_to_s3(main_image, f"products/{product_id}/main")
 
-    if gallery_images:
-        gallery_image_urls = []
-        for index, image in enumerate(gallery_images, start=1):
-            gallery_image_urls.append(upload_to_s3(image, f"products/{product_id}/gallery"))
+        if gallery_images:
+            gallery_image_urls = []
+            for image in gallery_images:
+                gallery_image_urls.append(upload_to_s3(image, f"products/{product_id}/gallery"))
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=str(exc),
+        ) from exc
 
     updated_product = service.update_product(
         product_id,

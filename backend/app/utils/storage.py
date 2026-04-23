@@ -1,5 +1,6 @@
 import uuid
 import boto3
+from botocore.exceptions import BotoCoreError, ClientError, NoCredentialsError, PartialCredentialsError
 from fastapi import UploadFile
 
 from ..core.config import settings
@@ -48,12 +49,28 @@ def upload_to_s3(upload_file: UploadFile, prefix: str) -> str:
     file_bytes = upload_file.file.read()
 
     # Upload to S3
-    s3.put_object(
-        Bucket=bucket_name,
-        Key=s3_key,
-        Body=file_bytes,
-        ContentType=upload_file.content_type or "image/jpeg"
-    )
+    try:
+        s3.put_object(
+            Bucket=bucket_name,
+            Key=s3_key,
+            Body=file_bytes,
+            ContentType=upload_file.content_type or "image/jpeg"
+        )
+    except (NoCredentialsError, PartialCredentialsError) as exc:
+        raise RuntimeError(
+            "AWS credentials are missing for product image upload. "
+            "Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY for the backend runtime."
+        ) from exc
+    except ClientError as exc:
+        error_code = exc.response.get("Error", {}).get("Code", "Unknown")
+        raise RuntimeError(
+            f"S3 upload failed with AWS error '{error_code}'. "
+            "Check the bucket name, IAM permissions, and S3 endpoint configuration."
+        ) from exc
+    except BotoCoreError as exc:
+        raise RuntimeError(
+            "S3 upload failed due to an AWS SDK error. Check AWS endpoint and network access."
+        ) from exc
 
     # Return URL (we assume bucket is public or public domain mapping exists)
     # If endpoint URL exists (localstack), use it; else standard AWS logic
