@@ -64,11 +64,9 @@ jobs:
         env:
           EKS_CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME }}
         run: |
-          if [ -z "$EKS_CLUSTER_NAME" ]; then
-            echo "Missing repository variable EKS_CLUSTER_NAME"
-            exit 1
-          fi
-          aws eks update-kubeconfig --name "$EKS_CLUSTER_NAME" --region "${{ env.AWS_REGION }}"
+          CLUSTER_NAME="${EKS_CLUSTER_NAME:-kapt-cluster-dev}"
+          echo "Using EKS cluster: $CLUSTER_NAME"
+          aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "${{ env.AWS_REGION }}"
 
       - name: Sync backend secret from GitHub secrets
         if: github.event_name == 'push'
