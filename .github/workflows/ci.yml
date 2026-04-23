@@ -53,6 +53,63 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
+      - name: Set up kubectl
+        if: github.event_name == 'push'
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.30.0'
+
+      - name: Update kubeconfig for EKS
+        if: github.event_name == 'push'
+        env:
+          EKS_CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME }}
+        run: |
+          if [ -z "$EKS_CLUSTER_NAME" ]; then
+            echo "Missing repository variable EKS_CLUSTER_NAME"
+            exit 1
+          fi
+          aws eks update-kubeconfig --name "$EKS_CLUSTER_NAME" --region "${{ env.AWS_REGION }}"
+
+      - name: Sync backend secret from GitHub secrets
+        if: github.event_name == 'push'
+        env:
+          K8S_NAMESPACE: ${{ vars.K8S_NAMESPACE }}
+          MYSQL_USER_SECRET: ${{ secrets.MYSQL_USER }}
+          MYSQL_PASSWORD_SECRET: ${{ secrets.MYSQL_PASSWORD }}
+          AWS_ACCESS_KEY_ID_SECRET: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY_SECRET: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          NAMESPACE="${K8S_NAMESPACE:-default}"
+          MYSQL_USER_VALUE="${MYSQL_USER_SECRET:-admin}"
+          MYSQL_PASSWORD_VALUE="${MYSQL_PASSWORD_SECRET:-Kaptdiecast2026!}"
+
+          if [ -z "$AWS_ACCESS_KEY_ID_SECRET" ] || [ -z "$AWS_SECRET_ACCESS_KEY_SECRET" ]; then
+            echo "Missing AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY in GitHub secrets"
+            exit 1
+          fi
+
+          kubectl create secret generic kapt-secret \
+            --namespace "$NAMESPACE" \
+            --from-literal=MYSQL_USER="$MYSQL_USER_VALUE" \
+            --from-literal=MYSQL_PASSWORD="$MYSQL_PASSWORD_VALUE" \
+            --from-literal=AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID_SECRET" \
+            --from-literal=AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY_SECRET" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy latest backend image to Kubernetes
+        if: github.event_name == 'push'
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+          K8S_NAMESPACE: ${{ vars.K8S_NAMESPACE }}
+        run: |
+          NAMESPACE="${K8S_NAMESPACE:-default}"
+          kubectl set image deployment/kapt-api \
+            fastapi-app="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
+            --namespace "$NAMESPACE"
+          kubectl rollout restart deployment/kapt-api --namespace "$NAMESPACE"
+          kubectl rollout status deployment/kapt-api --namespace "$NAMESPACE" --timeout=180s
+
   frontend-build-and-deploy:
     runs-on: ubuntu-latest
     steps:
