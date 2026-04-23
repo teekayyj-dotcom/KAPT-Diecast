@@ -59,7 +59,7 @@ const getErrorMessage = (error, fallbackMessage) => {
 
 const buildUserProfile = (user, tokens, attributes = {}) => {
   const payload = tokens.idToken?.payload || {}
-  const email = payload.email || attributes.email || user.signInDetails?.loginId || user.username
+  const email = payload.email || attributes.email || user?.signInDetails?.loginId || user?.username
   const displayName =
     payload.name ||
     attributes.name ||
@@ -72,7 +72,7 @@ const buildUserProfile = (user, tokens, attributes = {}) => {
     email,
     displayName,
     name: displayName,
-    username: payload['cognito:username'] || user.username,
+    username: payload['cognito:username'] || user?.username || email,
     token: tokens.idToken?.toString() || null,
   }
 }
@@ -114,12 +114,25 @@ export const getCurrentAuthenticatedUser = async () => {
   try {
     ensureAuthConfigured()
 
-    const user = await getCurrentUser()
     const session = await fetchAuthSession()
-    const attributes = await fetchUserAttributes()
 
     if (!session.tokens?.idToken) {
       return null
+    }
+
+    let user = null
+    let attributes = {}
+
+    try {
+      user = await getCurrentUser()
+    } catch {
+      user = null
+    }
+
+    try {
+      attributes = await fetchUserAttributes()
+    } catch {
+      attributes = {}
     }
 
     return buildUserProfile(user, session.tokens, attributes)
