@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from '../firebase'
 import { getUserRole } from '../utils/roles'
+import { buildApiUrl } from '../config/api'
 
 const AuthContext = createContext(null)
 
@@ -17,9 +18,8 @@ export const AuthProvider = ({ children }) => {
       
       if (user) {
         try {
-          const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8001";
           const token = await user.getIdToken();
-          await fetch(`${apiBaseUrl}/auth/me`, {
+          await fetch(buildApiUrl('/auth/me'), {
             headers: {
               Authorization: `Bearer ${token}`
             }

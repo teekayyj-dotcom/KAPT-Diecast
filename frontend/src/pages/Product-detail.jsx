@@ -5,8 +5,8 @@ import Footer from '../components/layout/Footer';
 import ProductCard from '../components/ui/ProductCard';
 import { useCart } from '../context/CartContext';
 import { Star, Minus, Plus, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
+import { buildApiUrl } from '../config/api';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
 const FALLBACK_PRODUCT_IMAGE = 'https://images.unsplash.com/photo-1542282088-fe8426682b8f?q=80&w=800&auto=format&fit=crop';
 
 const ProductDetail = () => {
@@ -27,7 +27,7 @@ const ProductDetail = () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`${API_BASE_URL}/products/${id}`);
+        const res = await fetch(buildApiUrl(`/products/${id}`));
         if (!res.ok) {
           throw new Error('Product not found');
         }
@@ -36,7 +36,7 @@ const ProductDetail = () => {
         setActiveImage(getImageUrl(data.main_image_url));
 
         // Fetch related products (just fetching all and taking 4 for demo)
-        const relRes = await fetch(`${API_BASE_URL}/products`);
+        const relRes = await fetch(buildApiUrl('/products'));
         if (relRes.ok) {
           const allProds = await relRes.json();
           setRelatedProducts(allProds.filter(p => p.id !== data.id).slice(0, 4));
@@ -55,7 +55,7 @@ const ProductDetail = () => {
   const getImageUrl = (url) => {
     if (!url) return FALLBACK_PRODUCT_IMAGE;
     if (url.startsWith('http')) return url;
-    return `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+    return buildApiUrl(url);
   };
 
   const handleAddToCart = () => {

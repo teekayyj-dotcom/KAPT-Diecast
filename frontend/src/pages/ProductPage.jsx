@@ -10,8 +10,8 @@ import {
   SCALE_OPTIONS,
 } from '../constants/productOptions';
 import { ChevronDown } from 'lucide-react';
+import { buildApiUrl } from '../config/api';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
 const FALLBACK_PRODUCT_IMAGE =
   'https://images.unsplash.com/photo-1542282088-fe8426682b8f?q=80&w=800&auto=format&fit=crop';
 
@@ -73,7 +73,7 @@ const ProductPage = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/products`);
+        const response = await fetch(buildApiUrl('/products'));
 
         if (!response.ok) {
           throw new Error('Unable to load products');
@@ -106,7 +106,7 @@ const ProductPage = () => {
   const getImageUrl = (url) => {
     if (!url) return FALLBACK_PRODUCT_IMAGE;
     if (url.startsWith('http')) return url;
-    return `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+    return buildApiUrl(url);
   };
 
   const toggleSelection = (value, setState) => {

@@ -1,6 +1,5 @@
 import { getFirebaseToken } from './authService'
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001'
+import { API_BASE_URL } from '../config/api'
 
 export const fetchWithAuth = async (path, options = {}) => {
   const token = await getFirebaseToken()
@@ -30,4 +29,3 @@ export const getProfile = async () => {
 
   return response.json()
 }
-
