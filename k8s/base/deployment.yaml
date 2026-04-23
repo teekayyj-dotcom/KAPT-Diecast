@@ -7,6 +7,14 @@ metadata:
     app: kapt-api
 spec:
   replicas: 3
+  minReadySeconds: 5
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: kapt-api
@@ -15,12 +23,15 @@ spec:
       labels:
         app: kapt-api
     spec:
+      terminationGracePeriodSeconds: 30
       containers:
         - name: fastapi-app
           image: 128974585784.dkr.ecr.ap-south-1.amazonaws.com/kapt-api-backend:fix-alembic-2
           imagePullPolicy: Always
           ports:
-            - containerPort: 8000
+            - name: http
+              containerPort: 8000
+              protocol: TCP
           envFrom:
             - configMapRef:
                 name: kapt-config
@@ -40,15 +51,19 @@ spec:
           livenessProbe:
             httpGet:
               path: /docs
-              port: 8000
+              port: http
             initialDelaySeconds: 15
             periodSeconds: 20
+            timeoutSeconds: 2
+            failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /docs
-              port: 8000
+              port: http
             initialDelaySeconds: 5
             periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
       volumes:
         - name: firebase-volume
           secret:
