@@ -3,7 +3,7 @@ import uuid
 from ..models.order import Order
 from ..models.order_item import OrderItem
 from ..repositories.order_repository import OrderRepository
-from ..schemas.order import CheckoutPayload
+from ..schemas.order import CheckoutOrderResponse, CheckoutPayload
 from .notification_service import send_order_confirmation_email
 
 
@@ -11,7 +11,7 @@ class OrderService:
     def __init__(self, repository: OrderRepository):
         self.repository = repository
 
-    def create_checkout_order(self, payload: CheckoutPayload) -> Order:
+    def create_checkout_order(self, payload: CheckoutPayload) -> CheckoutOrderResponse:
         order = Order(
             order_number=f"KAPT-{uuid.uuid4().hex[:10].upper()}",
             first_name=payload.first_name,
@@ -46,7 +46,7 @@ class OrderService:
         )
 
         created_order = self.repository.create(order)
-        send_order_confirmation_email(
+        email_result = send_order_confirmation_email(
             recipient_email=created_order.email,
             order_number=created_order.order_number,
             customer_name=f"{created_order.first_name} {created_order.last_name}".strip(),
@@ -60,4 +60,8 @@ class OrderService:
                 for item in created_order.items
             ],
         )
-        return created_order
+        return CheckoutOrderResponse(
+            order=created_order,
+            email_sent=email_result.sent,
+            email_error=email_result.error,
+        )

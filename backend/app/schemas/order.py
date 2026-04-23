@@ -62,3 +62,11 @@ class OrderResponse(BaseModel):
     items: list[OrderItemResponse]
     created_at: datetime
     updated_at: datetime
+
+
+class CheckoutOrderResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    order: OrderResponse
+    email_sent: bool
+    email_error: str | None = None

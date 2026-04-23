@@ -35,6 +35,7 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
+  const [emailWarning, setEmailWarning] = useState('')
 
   const shippingFee = cartItems.length > 0 ? 50000 : 0
   const total = subtotal + shippingFee
@@ -88,6 +89,7 @@ export default function CheckoutPage() {
     setIsSubmitting(true)
     setError('')
     setSuccessMessage('')
+    setEmailWarning('')
 
     try {
       const response = await fetch(buildApiUrl('/orders'), {
@@ -108,10 +110,18 @@ export default function CheckoutPage() {
         throw new Error('Unable to place your order right now.')
       }
 
-      const order = await response.json()
+      const checkoutResult = await response.json()
+      const order = checkoutResult.order
       clearCart()
       window.localStorage.setItem(CHECKOUT_STORAGE_KEY, JSON.stringify(formData))
       setSuccessMessage(`Payment successful. Order ${order.order_number} has been confirmed.`)
+      if (!checkoutResult.email_sent) {
+        setEmailWarning(
+          checkoutResult.email_error
+            ? `Order placed successfully, but the confirmation email could not be sent: ${checkoutResult.email_error}`
+            : 'Order placed successfully, but the confirmation email could not be sent.',
+        )
+      }
     } catch (requestError) {
       setError(requestError.message || 'Unable to place your order right now.')
     } finally {
@@ -279,6 +289,12 @@ export default function CheckoutPage() {
               {successMessage ? (
                 <div className="border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
                   {successMessage}
+                </div>
+              ) : null}
+
+              {emailWarning ? (
+                <div className="border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+                  {emailWarning}
                 </div>
               ) : null}
             </form>

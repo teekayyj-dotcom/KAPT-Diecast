@@ -1,11 +1,19 @@
 import logging
+from dataclasses import dataclass
 
 import boto3
+from botocore.exceptions import BotoCoreError, ClientError
 
 from ..core.config import settings
 
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class EmailDeliveryResult:
+    sent: bool
+    error: str | None = None
 
 
 def get_ses_client():
@@ -35,7 +43,7 @@ def send_order_confirmation_email(
     customer_name: str,
     total: float,
     line_items: list[dict],
-):
+) -> EmailDeliveryResult:
     item_lines = "\n".join(
         f"- {item['product_name']} x {item['quantity']}: ${item['line_total']:.2f}"
         for item in line_items
@@ -72,5 +80,15 @@ def send_order_confirmation_email(
                 },
             },
         )
-    except Exception:
+        return EmailDeliveryResult(sent=True)
+    except ClientError as exc:
+        error_code = exc.response.get("Error", {}).get("Code", "ClientError")
+        error_message = exc.response.get("Error", {}).get("Message", str(exc))
         logger.exception("Failed to send order confirmation email for %s", order_number)
+        return EmailDeliveryResult(sent=False, error=f"{error_code}: {error_message}")
+    except BotoCoreError as exc:
+        logger.exception("Failed to send order confirmation email for %s", order_number)
+        return EmailDeliveryResult(sent=False, error=str(exc))
+    except Exception as exc:
+        logger.exception("Failed to send order confirmation email for %s", order_number)
+        return EmailDeliveryResult(sent=False, error=str(exc))
