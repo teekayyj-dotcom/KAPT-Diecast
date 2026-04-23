@@ -21,15 +21,29 @@ export const AuthProvider = ({ children }) => {
         return
       }
 
-      setCurrentUser(user)
-      setRole(user ? getUserRole(user) : 'guest')
-
       if (user) {
         try {
-          await syncCurrentUserWithBackend()
+          const syncedUser = await syncCurrentUserWithBackend()
+          const resolvedUser = syncedUser
+            ? {
+                ...user,
+                email: syncedUser.email || user.email,
+                displayName: syncedUser.full_name || user.displayName || user.email,
+                fullName: syncedUser.full_name || user.fullName,
+                backendRole: syncedUser.role,
+              }
+            : user
+
+          setCurrentUser(resolvedUser)
+          setRole(syncedUser?.role || getUserRole(resolvedUser))
         } catch (e) {
           console.error('Failed to sync user with backend', e)
+          setCurrentUser(user)
+          setRole(getUserRole(user))
         }
+      } else {
+        setCurrentUser(null)
+        setRole('guest')
       }
 
       setLoading(false)
