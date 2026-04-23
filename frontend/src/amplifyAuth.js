@@ -1,7 +1,7 @@
 import { Amplify } from 'aws-amplify'
 
-const userPoolId = import.meta.env.VITE_COGNITO_USER_POOL_ID?.trim()
-const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID?.trim()
+const userPoolId = import.meta.env.VITE_COGNITO_USER_POOL_ID?.trim() || 'us-east-1_sPexa5AeC'
+const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID?.trim() || '3g86qsse5ceuelbg0rifkf1kui'
 const region = import.meta.env.VITE_COGNITO_REGION?.trim() || userPoolId?.split('_')[0] || 'us-east-1'
 const domain = import.meta.env.VITE_COGNITO_DOMAIN?.trim()
 const isLocalHost = (hostname) => hostname === 'localhost' || hostname === '127.0.0.1'
