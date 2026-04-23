@@ -1,0 +1,35 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: kapt-api-gateway
+  namespace: default
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - api.teekayyj.id.vn
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: kapt-api-virtualservice
+  namespace: default
+spec:
+  hosts:
+    - api.teekayyj.id.vn
+  gateways:
+    - kapt-api-gateway
+  http:
+    - match:
+        - uri:
+            prefix: /
+      route:
+        - destination:
+            host: kapt-api-service.default.svc.cluster.local
+            port:
+              number: 80
