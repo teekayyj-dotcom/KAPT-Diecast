@@ -105,8 +105,21 @@ jobs:
           kubectl set image deployment/kapt-api \
             fastapi-app="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
             --namespace "$NAMESPACE"
-          kubectl rollout restart deployment/kapt-api --namespace "$NAMESPACE"
-          kubectl rollout status deployment/kapt-api --namespace "$NAMESPACE" --timeout=180s
+          if ! kubectl rollout status deployment/kapt-api --namespace "$NAMESPACE" --timeout=300s; then
+            echo "Rollout failed. Collecting Kubernetes diagnostics..."
+            kubectl get deployment kapt-api --namespace "$NAMESPACE" -o wide || true
+            kubectl get pods --namespace "$NAMESPACE" -l app=kapt-api -o wide || true
+            kubectl describe deployment kapt-api --namespace "$NAMESPACE" || true
+            for pod in $(kubectl get pods --namespace "$NAMESPACE" -l app=kapt-api -o jsonpath='{.items[*].metadata.name}'); do
+              echo "===== describe pod: $pod ====="
+              kubectl describe pod "$pod" --namespace "$NAMESPACE" || true
+              echo "===== logs pod: $pod ====="
+              kubectl logs "$pod" --namespace "$NAMESPACE" --tail=200 || true
+              echo "===== previous logs pod: $pod ====="
+              kubectl logs "$pod" --namespace "$NAMESPACE" --previous --tail=200 || true
+            done
+            exit 1
+          fi
 
   frontend-build-and-deploy:
     runs-on: ubuntu-latest
