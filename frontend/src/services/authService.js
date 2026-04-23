@@ -23,6 +23,15 @@ const ensureAuthConfigured = () => {
   }
 }
 
+const clearExistingSessionIfNeeded = async () => {
+  try {
+    await getCurrentUser()
+    await signOut({ global: false })
+  } catch {
+    // No active session to clear.
+  }
+}
+
 const getErrorMessage = (error, fallbackMessage) => {
   if (!error) {
     return fallbackMessage
@@ -41,6 +50,8 @@ const getErrorMessage = (error, fallbackMessage) => {
       return 'The verification code has expired. Request a new one from Cognito.'
     case 'InvalidPasswordException':
       return 'Password does not meet the Cognito password policy.'
+    case 'UserAlreadyAuthenticatedException':
+      return 'A previous session was still open. Please try again.'
     default:
       return error.message || fallbackMessage
   }
@@ -168,6 +179,8 @@ export const loginWithEmail = async (email, password) => {
   ensureAuthConfigured()
 
   try {
+    await clearExistingSessionIfNeeded()
+
     const result = await signIn({
       username: email,
       password,
