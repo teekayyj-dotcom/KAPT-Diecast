@@ -94,6 +94,52 @@ jobs:
             --from-literal=AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY_SECRET" \
             --dry-run=client -o yaml | kubectl apply -f -
 
+      - name: Run database migrations
+        if: github.event_name == 'push'
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+          K8S_NAMESPACE: ${{ vars.K8S_NAMESPACE }}
+        run: |
+          NAMESPACE="${K8S_NAMESPACE:-default}"
+          JOB_NAME="alembic-upgrade-${GITHUB_SHA::7}"
+
+          cat <<EOF | kubectl apply -f -
+          apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: ${JOB_NAME}
+            namespace: ${NAMESPACE}
+          spec:
+            backoffLimit: 1
+            ttlSecondsAfterFinished: 300
+            template:
+              spec:
+                restartPolicy: Never
+                containers:
+                  - name: alembic
+                    image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
+                    command: ["python", "-m", "alembic", "upgrade", "head"]
+                    envFrom:
+                      - configMapRef:
+                          name: kapt-config
+                      - secretRef:
+                          name: kapt-secret
+          EOF
+
+          if ! kubectl wait --for=condition=complete "job/${JOB_NAME}" --namespace "$NAMESPACE" --timeout=300s; then
+            echo "Migration job failed. Collecting diagnostics..."
+            kubectl describe job "$JOB_NAME" --namespace "$NAMESPACE" || true
+            kubectl get pods --namespace "$NAMESPACE" -l "job-name=${JOB_NAME}" -o wide || true
+            for pod in $(kubectl get pods --namespace "$NAMESPACE" -l "job-name=${JOB_NAME}" -o jsonpath='{.items[*].metadata.name}'); do
+              echo "===== describe pod: $pod ====="
+              kubectl describe pod "$pod" --namespace "$NAMESPACE" || true
+              echo "===== logs pod: $pod ====="
+              kubectl logs "$pod" --namespace "$NAMESPACE" --tail=200 || true
+            done
+            exit 1
+          fi
+
       - name: Deploy latest backend image to Kubernetes
         if: github.event_name == 'push'
         env:
