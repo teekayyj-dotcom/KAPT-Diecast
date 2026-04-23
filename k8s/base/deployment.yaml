@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: fastapi-app
-          image: 128974585784.dkr.ecr.ap-south-1.amazonaws.com/kapt-api-backend:45fb00c217afcd4a42c047f2c298ca5b20462c68
+          image: 128974585784.dkr.ecr.ap-south-1.amazonaws.com/kapt-api-backend:fix-alembic-2
           imagePullPolicy: Always
           ports:
             - containerPort: 8000

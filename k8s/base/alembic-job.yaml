@@ -1,0 +1,18 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: alembic-upgrade
+spec:
+  template:
+    spec:
+      containers:
+      - name: alembic
+        image: 128974585784.dkr.ecr.ap-south-1.amazonaws.com/kapt-api-backend:fix-alembic-2
+        command: ["python", "-m", "alembic", "upgrade", "head"]
+        envFrom:
+        - configMapRef:
+            name: kapt-config
+        - secretRef:
+            name: kapt-secret
+      restartPolicy: Never
+  backoffLimit: 1
