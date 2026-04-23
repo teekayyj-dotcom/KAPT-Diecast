@@ -41,11 +41,9 @@ const Login = () => {
     setIsSubmitting(true);
 
     try {
-      const user = await loginWithGoogle();
-      navigate(isAdminUser(user) ? '/admin' : redirectTo, { replace: true });
+      await loginWithGoogle();
     } catch (err) {
-      setError(err.message || 'Unable to log in with Google.');
-    } finally {
+      setError(err.message || 'Unable to start Google sign-in.');
       setIsSubmitting(false);
     }
   };
@@ -140,12 +138,12 @@ const Login = () => {
               </div>
               
               <div className="flex justify-end">
-                <a href="#" className="text-[#e3342f] text-sm font-semibold hover:underline">
-                  Forgot password ?
-                </a>
+                <span className="text-sm font-semibold text-gray-400">
+                  Cognito email sign-in
+                </span>
               </div>
 
-              <div className="relative py-4 flex items-center justify-center">
+              <div className="relative py-1 flex items-center justify-center">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-200"></div>
                 </div>
@@ -160,7 +158,6 @@ const Login = () => {
                 disabled={isSubmitting}
                 className="w-full px-5 py-4 rounded-xl border border-gray-200 bg-white text-[#1a1a1a] font-bold flex items-center justify-center space-x-3 hover:bg-gray-50 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {/* Google SVG from standard icons */}
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -180,7 +177,7 @@ const Login = () => {
                   />
                   <path d="M1 1h22v22H1z" fill="none" />
                 </svg>
-                <span>Login with Google</span>
+                <span>Continue with Google</span>
               </button>
 
               {error && (

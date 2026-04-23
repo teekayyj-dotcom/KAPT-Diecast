@@ -18,6 +18,9 @@ class Settings:
         "/app/credentials/firebase-service-account.json",
     )
     bootstrap_admin_email: str = os.getenv("BOOTSTRAP_ADMIN_EMAIL", "teekayyj@gmail.com")
+    cognito_user_pool_id: str | None = os.getenv("COGNITO_USER_POOL_ID")
+    cognito_client_id: str | None = os.getenv("COGNITO_CLIENT_ID")
+    cognito_region: str = os.getenv("COGNITO_REGION", "us-east-1")
     # AWS S3 Configure
     aws_access_key_id: str = os.getenv("AWS_ACCESS_KEY_ID", "test")
     aws_secret_access_key: str = os.getenv("AWS_SECRET_ACCESS_KEY", "test")

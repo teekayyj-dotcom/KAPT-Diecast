@@ -28,6 +28,10 @@ class UserRepository:
         stmt = select(User).where(User.email == email)
         return self.db.scalar(stmt)
 
+    def get_by_cognito_sub(self, cognito_sub: str) -> User | None:
+        stmt = select(User).where(User.cognito_sub == cognito_sub)
+        return self.db.scalar(stmt)
+
     def get_by_firebase_uid(self, firebase_uid: str) -> User | None:
         stmt = select(User).where(User.firebase_uid == firebase_uid)
         return self.db.scalar(stmt)
@@ -47,4 +51,3 @@ class UserRepository:
     def delete(self, user: User):
         self.db.delete(user)
         self.db.commit()
-

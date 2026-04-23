@@ -1,8 +1,10 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { onAuthStateChanged } from 'firebase/auth'
-import { auth } from '../firebase'
 import { getUserRole } from '../utils/roles'
-import { buildApiUrl } from '../config/api'
+import {
+  getCurrentAuthenticatedUser,
+  subscribeToAuthChanges,
+  syncCurrentUserWithBackend,
+} from '../services/authService'
 
 const AuthContext = createContext(null)
 
@@ -12,27 +14,45 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    let isMounted = true
+
+    const applyUser = async (user) => {
+      if (!isMounted) {
+        return
+      }
+
       setCurrentUser(user)
       setRole(user ? getUserRole(user) : 'guest')
-      
+
       if (user) {
         try {
-          const token = await user.getIdToken();
-          await fetch(buildApiUrl('/auth/me'), {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          });
+          await syncCurrentUserWithBackend()
         } catch (e) {
-          console.error("Failed to sync user with backend", e);
+          console.error('Failed to sync user with backend', e)
         }
       }
-      
+
       setLoading(false)
+    }
+
+    getCurrentAuthenticatedUser()
+      .then(applyUser)
+      .catch((error) => {
+        if (isMounted) {
+          setCurrentUser(null)
+          setRole('guest')
+          setLoading(false)
+        }
+      })
+
+    const unsubscribe = subscribeToAuthChanges((user) => {
+      applyUser(user)
     })
 
-    return unsubscribe
+    return () => {
+      isMounted = false
+      unsubscribe()
+    }
   }, [])
 
   return (

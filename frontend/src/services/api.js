@@ -1,8 +1,8 @@
-import { getFirebaseToken } from './authService'
+import { getAuthToken } from './authService'
 import { API_BASE_URL } from '../config/api'
 
 export const fetchWithAuth = async (path, options = {}) => {
-  const token = await getFirebaseToken()
+  const token = await getAuthToken()
 
   if (!token) {
     throw new Error('User not authenticated')

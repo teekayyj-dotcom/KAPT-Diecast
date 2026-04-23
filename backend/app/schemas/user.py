@@ -14,6 +14,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     firebase_uid: str | None = None
+    cognito_sub: str | None = None
 
 
 class UserUpdate(BaseModel):
@@ -21,6 +22,7 @@ class UserUpdate(BaseModel):
     role: str | None = None
     status: str | None = None
     firebase_uid: str | None = None
+    cognito_sub: str | None = None
 
 
 class UserResponse(UserBase):
@@ -28,6 +30,6 @@ class UserResponse(UserBase):
 
     id: int
     firebase_uid: str | None = None
+    cognito_sub: str | None = None
     created_at: datetime
     updated_at: datetime
-

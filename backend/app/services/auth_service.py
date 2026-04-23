@@ -8,14 +8,16 @@ class AuthService:
     def __init__(self, repository: UserRepository):
         self.repository = repository
 
-    def sync_firebase_user(self, firebase_user: dict):
-        firebase_uid = firebase_user.get("uid")
-        email = (firebase_user.get("email") or "").lower()
-        full_name = firebase_user.get("name")
+    def sync_cognito_user(self, cognito_user: dict):
+        cognito_sub = cognito_user.get("sub")
+        email = (cognito_user.get("email") or "").lower()
+        full_name = cognito_user.get("name") or cognito_user.get("username")
 
         user = None
-        if firebase_uid:
-            user = self.repository.get_by_firebase_uid(firebase_uid)
+        if cognito_sub:
+            user = self.repository.get_by_cognito_sub(cognito_sub)
+        if not user and cognito_sub:
+            user = self.repository.get_by_firebase_uid(cognito_sub)
         if not user and email:
             user = self.repository.get_by_email(email)
 
@@ -23,7 +25,7 @@ class AuthService:
 
         if not user:
             user = User(
-                firebase_uid=firebase_uid,
+                cognito_sub=cognito_sub,
                 email=email,
                 full_name=full_name,
                 role=expected_role,
@@ -31,11 +33,10 @@ class AuthService:
             )
             return self.repository.create(user)
 
-        user.firebase_uid = firebase_uid or user.firebase_uid
+        user.cognito_sub = cognito_sub or user.cognito_sub
         user.email = email or user.email
         user.full_name = full_name or user.full_name
         if user.email == settings.bootstrap_admin_email.lower():
             user.role = ADMIN_ROLE
 
         return self.repository.update(user)
-
