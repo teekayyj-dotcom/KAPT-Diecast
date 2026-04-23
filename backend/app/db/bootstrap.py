@@ -2,6 +2,7 @@ from sqlalchemy import inspect, text
 
 from ..core.config import settings
 from ..core.security import ACTIVE_STATUS, ADMIN_ROLE
+from ..models import Base
 from ..models.user import User
 from .session import SessionLocal
 
@@ -48,6 +49,7 @@ def ensure_legacy_tables_are_compatible(db):
 def bootstrap_default_data():
     db = SessionLocal()
     try:
+        Base.metadata.create_all(bind=db.bind)
         ensure_legacy_tables_are_compatible(db)
         admin_email = settings.bootstrap_admin_email.lower()
         admin_user = db.query(User).filter(User.email == admin_email).first()

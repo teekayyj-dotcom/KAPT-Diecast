@@ -25,6 +25,7 @@ class Settings:
     s3_bucket_name: str = os.getenv("S3_BUCKET_NAME", "kapt-diecast")
     s3_bucket_domain_name: str | None = os.getenv("S3_BUCKET_DOMAIN_NAME")
     aws_endpoint_url: str | None = os.getenv("AWS_ENDPOINT_URL", "http://localstack:4566")
+    ses_sender_email: str = os.getenv("SES_SENDER_EMAIL", bootstrap_admin_email)
 
     @property
     def database_url(self) -> str:

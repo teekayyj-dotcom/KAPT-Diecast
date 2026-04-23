@@ -1,9 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import { useCart } from '../context/CartContext';
 
 const CartPage = () => {
+  const navigate = useNavigate();
   const { cartItems, subtotal, removeFromCart, updateQuantity, clearCart } = useCart();
   const shippingFee = cartItems.length > 0 ? 50 : 0;
   const orderTotal = subtotal + shippingFee;
@@ -168,7 +170,11 @@ const CartPage = () => {
                  We cordially invite you to register as a KAPT Diecast Member to ensure you receive the latest information and official updates regarding the association. As a valued member, you will gain priority access to important announcements and be entitled to numerous exclusive benefits and attractive offers designed to enhance your collecting experience.
                </p>
                <div className="flex flex-col sm:flex-row gap-4 w-full max-w-[380px]">
-                 <button className="flex-1 border-2 border-white/60 text-white py-3.5 rounded-full font-bold text-[10px] tracking-widest uppercase hover:bg-white hover:text-black hover:border-white transition-all w-full whitespace-nowrap px-4">
+                 <button
+                   type="button"
+                   onClick={() => navigate('/checkout')}
+                   className="flex-1 border-2 border-white/60 text-white py-3.5 rounded-full font-bold text-[10px] tracking-widest uppercase hover:bg-white hover:text-black hover:border-white transition-all w-full whitespace-nowrap px-4"
+                 >
                    Check Out As Guest
                  </button>
                  <button className="flex-1 bg-[#e3342f] text-white py-3.5 rounded-full font-bold text-[10px] tracking-widest uppercase shadow-lg hover:bg-red-700 transition-colors w-full whitespace-nowrap px-4">

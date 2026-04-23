@@ -26,7 +26,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: fastapi-app
-          image: 128974585784.dkr.ecr.ap-south-1.amazonaws.com/kapt-api-backend:fix-auth-sync-1
+          image: 128974585784.dkr.ecr.ap-south-1.amazonaws.com/kapt-api-backend:fix-checkout-1
           imagePullPolicy: Always
           ports:
             - name: http

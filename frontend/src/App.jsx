@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage'
 import ProductPage from './pages/ProductPage'
 import ProductDetail from './pages/Product-detail'
 import CartPage from './pages/Cart'
+import CheckoutPage from './pages/CheckoutPage'
 import LoginPage from './pages_auth/Login'
 import SignupPage from './pages_auth/Signup'
 import BlogPage from './pages/Blog'
@@ -35,14 +36,8 @@ export default function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/products" element={<ProductPage />} />
         <Route path="/products/:id" element={<ProductDetail />} />
-        <Route
-          path="/cart"
-          element={
-            <ProtectedRoute>
-              <CartPage />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/cart" element={<CartPage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/blog" element={<BlogPage />} />

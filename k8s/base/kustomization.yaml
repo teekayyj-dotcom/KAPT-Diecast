@@ -3,9 +3,8 @@ kind: Kustomization
 resources:
   - configmap.yaml
   - secret.yaml
-  - firebase-secret.yaml
   - deployment.yaml
   - service.yaml
 images:
   - name: 128974585784.dkr.ecr.ap-south-1.amazonaws.com/kapt-api-backend
-    newTag: fix-auth-sync-1
+    newTag: fix-checkout-1

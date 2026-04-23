@@ -8,7 +8,7 @@ from .core.config import settings
 from .db.base import Base
 from .db.bootstrap import bootstrap_default_data
 from .db.session import engine
-from .models import Product, User, Blog, Poster
+from .models import Product, User, Blog, Poster, Order, OrderItem
 
 
 app = FastAPI(title=settings.app_name, version=settings.app_version)
