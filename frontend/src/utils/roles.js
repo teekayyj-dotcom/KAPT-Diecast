@@ -1,6 +1,11 @@
 const ADMIN_EMAILS = new Set(['teekayyj@gmail.com'])
 
 export const getUserRole = (user) => {
+  const backendRole = user?.backendRole?.trim().toLowerCase()
+  if (backendRole) {
+    return backendRole
+  }
+
   const email = user?.email?.trim().toLowerCase()
 
   if (email && ADMIN_EMAILS.has(email)) {
@@ -11,4 +16,3 @@ export const getUserRole = (user) => {
 }
 
 export const isAdminUser = (user) => getUserRole(user) === 'admin'
-

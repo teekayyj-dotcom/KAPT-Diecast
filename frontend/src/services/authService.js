@@ -110,6 +110,15 @@ const syncUserWithBackend = async (token) => {
   return response.json()
 }
 
+const syncUserWithBackendSafely = async (token) => {
+  try {
+    return await syncUserWithBackend(token)
+  } catch (error) {
+    console.error('Failed to sync user with backend', error)
+    return null
+  }
+}
+
 export const getCurrentAuthenticatedUser = async () => {
   try {
     ensureAuthConfigured()
@@ -148,7 +157,7 @@ export const syncCurrentUserWithBackend = async () => {
     return null
   }
 
-  return syncUserWithBackend(token)
+  return syncUserWithBackendSafely(token)
 }
 
 export const registerWithEmail = async (email, password, displayName) => {
@@ -209,8 +218,17 @@ export const loginWithEmail = async (email, password) => {
       throw new Error('Unable to load your Cognito session after sign-in.')
     }
 
-    await syncUserWithBackend(user.token)
-    return user
+    const syncedUser = await syncUserWithBackendSafely(user.token)
+
+    return syncedUser
+      ? {
+          ...user,
+          email: syncedUser.email || user.email,
+          displayName: syncedUser.full_name || user.displayName || user.email,
+          fullName: syncedUser.full_name || user.fullName,
+          backendRole: syncedUser.role,
+        }
+      : user
   } catch (error) {
     throw new Error(getErrorMessage(error, 'Unable to log in.'))
   }

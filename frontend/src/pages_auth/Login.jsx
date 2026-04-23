@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Facebook, Twitter, Linkedin, Instagram, ArrowLeft, ArrowRight, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { loginWithEmail, loginWithGoogle } from '../services/authService';
-import { isAdminUser } from '../utils/roles';
+import { getUserRole, isAdminUser } from '../utils/roles';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -14,12 +14,19 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const redirectTo = location.state?.from?.pathname || (isAdmin ? '/admin' : '/');
+  const resolveRedirectPath = (user) => {
+    if (getUserRole(user) === 'admin' || isAdminUser(user)) {
+      return '/admin'
+    }
+
+    return location.state?.from?.pathname || '/'
+  }
 
   useEffect(() => {
     if (currentUser) {
-      navigate(redirectTo, { replace: true });
+      navigate(resolveRedirectPath(currentUser), { replace: true });
     }
-  }, [currentUser, navigate, redirectTo]);
+  }, [currentUser, navigate]);
 
   const handleEmailLogin = async (event) => {
     event.preventDefault();
@@ -28,7 +35,7 @@ const Login = () => {
 
     try {
       const user = await loginWithEmail(email, password);
-      navigate(isAdminUser(user) ? '/admin' : redirectTo, { replace: true });
+      navigate(resolveRedirectPath(user), { replace: true });
     } catch (err) {
       setError(err.message || 'Unable to log in.');
     } finally {
