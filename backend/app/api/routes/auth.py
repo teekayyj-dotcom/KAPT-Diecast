@@ -10,6 +10,7 @@ router = APIRouter()
 
 
 @router.get("/me", response_model=UserResponse)
+@router.get("/auth/me", response_model=UserResponse, include_in_schema=False)
 def get_my_profile(
     current_user=Depends(get_current_app_user),
 ):

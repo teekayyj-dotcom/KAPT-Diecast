@@ -6,3 +6,5 @@
 .terraform.lock.hcl
 **/.terraform
 **/.terraform/*
+
+kapt-diecast-firebase-adminsdk-fbsvc-01490f2bc2.json

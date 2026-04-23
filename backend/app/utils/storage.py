@@ -6,13 +6,25 @@ from ..core.config import settings
 
 
 def get_s3_client():
-    return boto3.client(
-        "s3",
-        aws_access_key_id=settings.aws_access_key_id,
-        aws_secret_access_key=settings.aws_secret_access_key,
-        region_name=settings.aws_region,
-        endpoint_url=settings.aws_endpoint_url
+    client_kwargs = {
+        "region_name": settings.aws_region,
+        "endpoint_url": settings.aws_endpoint_url,
+    }
+
+    access_key = settings.aws_access_key_id
+    secret_key = settings.aws_secret_access_key
+    has_explicit_credentials = (
+        access_key
+        and secret_key
+        and access_key not in {"REPLACE_ME", "test"}
+        and secret_key not in {"REPLACE_ME", "test"}
     )
+
+    if has_explicit_credentials:
+        client_kwargs["aws_access_key_id"] = access_key
+        client_kwargs["aws_secret_access_key"] = secret_key
+
+    return boto3.client("s3", **client_kwargs)
 
 
 def upload_to_s3(upload_file: UploadFile, prefix: str) -> str:
@@ -45,6 +57,8 @@ def upload_to_s3(upload_file: UploadFile, prefix: str) -> str:
 
     # Return URL (we assume bucket is public or public domain mapping exists)
     # If endpoint URL exists (localstack), use it; else standard AWS logic
+    if settings.s3_bucket_domain_name:
+        return f"https://{settings.s3_bucket_domain_name}/{s3_key}"
     if settings.aws_endpoint_url:
         return f"{settings.aws_endpoint_url}/{bucket_name}/{s3_key}"
     else:

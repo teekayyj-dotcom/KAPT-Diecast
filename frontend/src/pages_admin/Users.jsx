@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Search, Plus, Edit2, Trash2, Filter, MoreHorizontal } from "lucide-react";
 import { Link } from "react-router-dom";
+import { buildApiUrl } from "../config/api";
 
 export function Users() {
   const [search, setSearch] = useState("");
@@ -8,13 +9,11 @@ export function Users() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8001";
-
   const fetchUsers = async (searchQuery = "") => {
     try {
       setLoading(true);
       setError(null);
-      const url = new URL(`${apiBaseUrl}/users`);
+      const url = new URL(buildApiUrl('/users'));
       if (searchQuery) {
         url.searchParams.append("q", searchQuery);
       }
@@ -138,10 +137,10 @@ export function Users() {
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-600">
-                          {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                          {user.full_name ? user.full_name.charAt(0).toUpperCase() : 'U'}
                         </div>
                         <div>
-                          <div className="text-sm font-medium text-black">{user.name || "N/A"}</div>
+                          <div className="text-sm font-medium text-black">{user.full_name || "N/A"}</div>
                           <div className="text-xs text-gray-400">{user.email}</div>
                         </div>
                       </div>
