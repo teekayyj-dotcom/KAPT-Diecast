@@ -10,7 +10,7 @@ env:
   AWS_REGION: ap-south-1
   ECR_REPOSITORY: kapt-api-backend
   S3_BUCKET: kapt-diecast
-  CLOUDFRONT_DISTRIBUTION_ID: YOUR_DISTRIBUTION_ID
+  CLOUDFRONT_DISTRIBUTION_ID: E1VJ8L0WCU3FXH
 
 jobs:
   backend-test-and-build:
@@ -86,4 +86,8 @@ jobs:
 
       - name: Invalidate CloudFront Cache
         run: |
-          aws cloudfront create-invalidation --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+          if [ "${{ env.CLOUDFRONT_DISTRIBUTION_ID }}" != "YOUR_DISTRIBUTION_ID" ]; then
+            aws cloudfront create-invalidation --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+          else
+            echo "Skipping CloudFront invalidation because distribution ID is a placeholder."
+          fi
