@@ -19,5 +19,5 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-bootstrap_default_data()
+bootstrap_default_data() 
 app.include_router(api_router)
