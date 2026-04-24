@@ -1,5 +1,9 @@
 # KAPT Diecast E-commerce Platform
 
+Video walkthrough: [Detailed project explanation video](https://buveduvn0-my.sharepoint.com/personal/kiet_lt_st_buv_edu_vn/_layouts/15/guestaccess.aspx?share=IQALpk_q61cnQaeJjJ9ux-72AXaKHxeeReyV-0_yj2zV9do&e=IEg5Z5)
+
+This video explains the project in more detail and provides additional context for the main technical elements included in this submission.
+
 KAPT Diecast is a cloud-oriented full-stack e-commerce project for selling diecast model cars. The repository combines a React frontend, a FastAPI backend, containerized local development, Kubernetes deployment manifests, Istio ingress routing, Terraform infrastructure as code, and a GitHub Actions based CI/CD pipeline.
 
 This README documents the project in detail, including:
